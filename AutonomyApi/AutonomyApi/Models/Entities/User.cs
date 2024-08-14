@@ -1,10 +1,10 @@
-﻿namespace AutonomyApi.Entities
+﻿namespace AutonomyApi.Models.Entities
 {
     public class User
     {
         public int Id { get; private set; }
         public required string Name { get; set; }
         public required string Password { get; set; }
-        public DateTime RegistrationDate { get; } = DateTime.UtcNow;
+        public required DateTime RegistrationDate { get; set; }
     }
 }

@@ -1,11 +1,11 @@
-﻿namespace AutonomyApi.Entities
+﻿namespace AutonomyApi.Models.Entities
 {
     public class Client
     {
         public int Id { get; private set; }
-        internal int UserId { get; set; }
+        public required int UserId { internal get; set; }
         public required string Name { get; set; }
         public required List<ClientDocument> Documents { get; set; }
-        public DateTime RegistrationDate { get; private set; } = DateTime.UtcNow;
+        public required DateTime RegistrationDate { get; set; }
     }
 }

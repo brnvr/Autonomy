@@ -1,6 +1,7 @@
 ﻿using AutonomyApi.WebService.Exceptions;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using System.Data.Common;
 using System.Security.Authentication;
 
 namespace AutonomyApi.WebService
@@ -90,6 +91,16 @@ namespace AutonomyApi.WebService
         {
             if (ex is DbUpdateException dbEx)
             {
+                var _dbEx = ex.InnerException as DbException;
+
+                if (_dbEx != null)
+                {
+                    if (_dbEx.ErrorCode == -2147467259)
+                    {
+                        return Controller.Conflict(_dbEx.Message);
+                    }
+                }
+
                 return Controller.UnprocessableEntity((dbEx.InnerException ?? dbEx).Message);
             }
             else if (ex is HttpRequestException httpEx)

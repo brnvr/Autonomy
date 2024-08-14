@@ -1,15 +1,16 @@
 ﻿using AutonomyApi.Database;
-using AutonomyApi.Dtos;
-using AutonomyApi.Entities;
+using AutonomyApi.Models.Entities;
+using AutonomyApi.Models.Views.Client;
 using AutonomyApi.WebService;
+using AutonomyApi.WebService.DynamicFilters;
 using AutonomyApi.WebService.Exceptions;
 using Microsoft.EntityFrameworkCore;
 
 namespace AutonomyApi.Repositories
 {
-    public class ClientRepository : RepositoryBase<AppDbContext, Client>
+    public class ClientRepository : RepositoryBase<AutonomyDbContext, Client>
     {
-        public ClientRepository(AppDbContext dbContext) : base(dbContext, ctx => ctx.Clients) { }
+        public ClientRepository(AutonomyDbContext dbContext) : base(dbContext, ctx => ctx.Clients) { }
 
         public Client Find(int userId, int id)
         {
@@ -27,11 +28,11 @@ namespace AutonomyApi.Repositories
             return result;
         }
 
-        public List<ClientOverview> FindAll(int userId, Filter<ClientOverview>? filter = null)
+        public List<ClientSummary> FindAll(int userId, DynamicFilterPipeline<ClientSummary>? filter = null)
         {
             var query = from client in Entities
                         where client.UserId == userId
-                        select new ClientOverview
+                        select new ClientSummary
                         {
                             Id = client.Id,
                             Name = client.Name
@@ -42,7 +43,7 @@ namespace AutonomyApi.Repositories
                 return query.ToList();
             }
 
-            return filter(query).ToList();
+            return filter.GetDelegate()(query).ToList();
         }
 
         public override IQueryable<Client> Compose(IQueryable<Client> query)

@@ -11,13 +11,12 @@
 
         public EntityNotFoundException(Type entityType, params object?[] keyValues) : base
         (
-             $"Entity of type {entityType.Name} not found for key values [{string.Join(',', keyValues)}]."
-        )
-        { }
+             $"Unable to find entity of type {entityType.Name} with key value(s) [{string.Join(',', keyValues)}]."
+        ) { }
 
-        public EntityNotFoundException(Type entityType, Exception innerException, params object?[] keyValues) : base
+        public EntityNotFoundException(Type entityType, object?[] keyValues, Exception? innerException = null) : base
         (
-             $"Entity of type {entityType.Name} not found for key values [{string.Join(',', keyValues)}].", innerException
+             $"Unable to find entity of type {entityType.Name} with key value(s) [{string.Join(',', keyValues)}].", innerException
         ) { }
     }
 }

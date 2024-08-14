@@ -1,9 +1,9 @@
-﻿using AutonomyApi.Entities;
+﻿using AutonomyApi.Models.Entities;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace AutonomyApi.Database
 {
-    public partial class AppDbContext
+    public partial class AutonomyDbContext
     {
         protected void OnUserModelCreating(EntityTypeBuilder<User> builder)
         {

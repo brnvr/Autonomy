@@ -1,4 +1,6 @@
-﻿namespace AutonomyApi
+﻿using Npgsql;
+
+namespace AutonomyApi
 {
     public static class AppSettings
     {

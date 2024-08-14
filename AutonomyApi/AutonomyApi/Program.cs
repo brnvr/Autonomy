@@ -1,5 +1,6 @@
 using AutonomyApi;
 using AutonomyApi.Database;
+using AutonomyApi.Enums;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
@@ -42,10 +43,19 @@ builder.Services.AddSwaggerGen(c =>
 
     c.IncludeXmlComments(xmlPath);
 });
-builder.Services.AddDbContext<AppDbContext>((options) => {
-    var dbDataSource = new NpgsqlDataSourceBuilder(AppSettings.ConnectionString).Build();
-    options.UseNpgsql(dbDataSource);
+
+var dataSourceBuilder = new NpgsqlDataSourceBuilder(AppSettings.ConnectionString);
+dataSourceBuilder
+    .MapEnum<DocumentType>()
+    .MapEnum<TimeUnit>();
+var dataSource = dataSourceBuilder.Build();
+
+builder.Services.AddDbContext<AutonomyDbContext>((options) =>
+{
+    options.UseNpgsql(dataSource);
+    options.UseSnakeCaseNamingConvention();
 });
+
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
     {

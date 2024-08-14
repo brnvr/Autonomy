@@ -1,5 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using AutonomyApi.WebService.Exceptions;
+using AutonomyApi.WebService.DynamicFilters;
 
 namespace AutonomyApi.WebService
 {
@@ -14,7 +15,7 @@ namespace AutonomyApi.WebService
             DbContext = dbContext;
         }
 
-        public virtual List<TEntity> FindAll(Filter<TEntity>? filter = null)
+        public virtual List<TEntity> FindAll(DynamicFilterPipelineDelegate<TEntity>? filter = null)
         {
             if (filter == null)
             {
@@ -24,7 +25,7 @@ namespace AutonomyApi.WebService
             return filter(Compose(Entities)).ToList();
         }
 
-        public virtual TEntity FindFirst(Filter<TEntity>? filter = null)
+        public virtual TEntity FindFirst(DynamicFilterPipelineDelegate<TEntity>? filter = null)
         {
             TEntity? result;
 
@@ -55,7 +56,12 @@ namespace AutonomyApi.WebService
             Entities.Remove(entity);
         }
 
-        public virtual bool Exists(Filter<TEntity>? filter = null)
+        public virtual bool Exists(params object[] keyValues)
+        {
+            return Entities.Find(keyValues) != null;
+        }
+
+        public virtual bool Exists(DynamicFilterPipelineDelegate<TEntity>? filter)
         {
             if (filter == null)
             {
