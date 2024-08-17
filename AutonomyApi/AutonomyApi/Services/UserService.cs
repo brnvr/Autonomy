@@ -1,6 +1,6 @@
 ﻿using AutonomyApi.Database;
 using AutonomyApi.Models.Entities;
-using AutonomyApi.Models.Views.User;
+using AutonomyApi.Models.ViewModels.User;
 using AutonomyApi.Repositories;
 
 namespace AutonomyApi.Services
@@ -14,7 +14,7 @@ namespace AutonomyApi.Services
             _dbContext = dbContext;
         }
 
-        public int Create(UserCreationData data)
+        public int Create(UserCreationView data)
         {
             var hashedPassword = BCrypt.Net.BCrypt.HashPassword(data.Password);
 
@@ -22,7 +22,7 @@ namespace AutonomyApi.Services
             {
                 Name = data.Name,
                 Password = hashedPassword,
-                RegistrationDate = DateTime.UtcNow
+                CreationDate = DateTime.UtcNow
             };
 
             new UserRepository(_dbContext).Add(user);

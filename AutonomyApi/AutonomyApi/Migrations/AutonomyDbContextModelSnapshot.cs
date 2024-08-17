@@ -34,6 +34,10 @@ namespace AutonomyApi.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
+                    b.Property<DateTime>("CreationDate")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("creation_date");
+
                     b.Property<string>("Footer")
                         .HasMaxLength(500)
                         .HasColumnType("character varying(500)")
@@ -43,6 +47,10 @@ namespace AutonomyApi.Migrations
                         .HasMaxLength(500)
                         .HasColumnType("character varying(500)")
                         .HasColumnName("header");
+
+                    b.Property<bool>("IsTemplate")
+                        .HasColumnType("boolean")
+                        .HasColumnName("is_template");
 
                     b.Property<string>("Name")
                         .IsRequired()
@@ -57,25 +65,26 @@ namespace AutonomyApi.Migrations
                     b.HasKey("Id")
                         .HasName("pk_budgets");
 
-                    b.HasIndex("UserId", "Name")
+                    b.HasIndex("UserId", "IsTemplate", "Name")
                         .IsUnique()
-                        .HasDatabaseName("ix_budgets_user_id_name");
+                        .HasDatabaseName("ix_budgets_user_id_is_template_name");
 
                     b.ToTable("budgets", (string)null);
                 });
 
             modelBuilder.Entity("AutonomyApi.Models.Entities.BudgetItem", b =>
                 {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer")
-                        .HasColumnName("id");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
                     b.Property<int>("BudgetId")
                         .HasColumnType("integer")
                         .HasColumnName("budget_id");
+
+                    b.Property<int>("Position")
+                        .HasColumnType("integer")
+                        .HasColumnName("position");
+
+                    b.Property<int>("CurrencyId")
+                        .HasColumnType("integer")
+                        .HasColumnName("currency_id");
 
                     b.Property<int>("Duration")
                         .HasColumnType("integer")
@@ -99,8 +108,11 @@ namespace AutonomyApi.Migrations
                         .HasColumnType("numeric")
                         .HasColumnName("unit_price");
 
-                    b.HasKey("Id")
+                    b.HasKey("BudgetId", "Position")
                         .HasName("pk_budget_items");
+
+                    b.HasIndex("CurrencyId")
+                        .HasDatabaseName("ix_budget_items_currency_id");
 
                     b.HasIndex("BudgetId", "Name")
                         .IsUnique()
@@ -118,15 +130,15 @@ namespace AutonomyApi.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
+                    b.Property<DateTime>("CreationDate")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("creation_date");
+
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(60)
                         .HasColumnType("character varying(60)")
                         .HasColumnName("name");
-
-                    b.Property<DateTime>("RegistrationDate")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("registration_date");
 
                     b.Property<int>("UserId")
                         .HasColumnType("integer")
@@ -164,6 +176,136 @@ namespace AutonomyApi.Migrations
                     b.ToTable("client_documents", (string)null);
                 });
 
+            modelBuilder.Entity("AutonomyApi.Models.Entities.Currency", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasColumnName("id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Code")
+                        .IsRequired()
+                        .HasMaxLength(3)
+                        .HasColumnType("character varying(3)")
+                        .HasColumnName("code");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("name");
+
+                    b.Property<string>("Symbol")
+                        .IsRequired()
+                        .HasMaxLength(5)
+                        .HasColumnType("character varying(5)")
+                        .HasColumnName("symbol");
+
+                    b.HasKey("Id")
+                        .HasName("pk_currencies");
+
+                    b.ToTable("currencies", (string)null);
+                });
+
+            modelBuilder.Entity("AutonomyApi.Models.Entities.Schedule", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasColumnName("id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreationDate")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("creation_date");
+
+                    b.Property<DateTime>("Date")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("date");
+
+                    b.Property<string>("Description")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)")
+                        .HasColumnName("description");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(60)
+                        .HasColumnType("character varying(60)")
+                        .HasColumnName("name");
+
+                    b.Property<int?>("ServiceId")
+                        .HasColumnType("integer")
+                        .HasColumnName("service_id");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("integer")
+                        .HasColumnName("user_id");
+
+                    b.HasKey("Id")
+                        .HasName("pk_schedules");
+
+                    b.HasIndex("ServiceId")
+                        .HasDatabaseName("ix_schedules_service_id");
+
+                    b.HasIndex("UserId", "Date", "Name")
+                        .IsUnique()
+                        .HasDatabaseName("ix_schedules_user_id_date_name");
+
+                    b.ToTable("schedules", (string)null);
+                });
+
+            modelBuilder.Entity("AutonomyApi.Models.Entities.Service", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasColumnName("id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<int?>("BudgetTemplateId")
+                        .HasColumnType("integer")
+                        .HasColumnName("budget_template_id");
+
+                    b.Property<DateTime>("CreationDate")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("creation_date");
+
+                    b.Property<string>("Description")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)")
+                        .HasColumnName("description");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(60)
+                        .HasColumnType("character varying(60)")
+                        .HasColumnName("name");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("integer")
+                        .HasColumnName("user_id");
+
+                    b.HasKey("Id")
+                        .HasName("pk_services");
+
+                    b.HasIndex("BudgetTemplateId")
+                        .HasDatabaseName("ix_services_budget_template_id");
+
+                    b.HasIndex("Name")
+                        .IsUnique()
+                        .HasDatabaseName("ix_services_name");
+
+                    b.HasIndex("UserId")
+                        .HasDatabaseName("ix_services_user_id");
+
+                    b.ToTable("services", (string)null);
+                });
+
             modelBuilder.Entity("AutonomyApi.Models.Entities.User", b =>
                 {
                     b.Property<int>("Id")
@@ -172,6 +314,10 @@ namespace AutonomyApi.Migrations
                         .HasColumnName("id");
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreationDate")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("creation_date");
 
                     b.Property<string>("Name")
                         .IsRequired()
@@ -185,10 +331,6 @@ namespace AutonomyApi.Migrations
                         .HasColumnType("character varying(60)")
                         .HasColumnName("password");
 
-                    b.Property<DateTime>("RegistrationDate")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("registration_date");
-
                     b.HasKey("Id")
                         .HasName("pk_users");
 
@@ -197,6 +339,25 @@ namespace AutonomyApi.Migrations
                         .HasDatabaseName("ix_users_name");
 
                     b.ToTable("users", (string)null);
+                });
+
+            modelBuilder.Entity("ClientSchedule", b =>
+                {
+                    b.Property<int>("ClientsId")
+                        .HasColumnType("integer")
+                        .HasColumnName("clients_id");
+
+                    b.Property<int>("ScheduleId")
+                        .HasColumnType("integer")
+                        .HasColumnName("schedule_id");
+
+                    b.HasKey("ClientsId", "ScheduleId")
+                        .HasName("pk_client_schedule");
+
+                    b.HasIndex("ScheduleId")
+                        .HasDatabaseName("ix_client_schedule_schedule_id");
+
+                    b.ToTable("client_schedule", (string)null);
                 });
 
             modelBuilder.Entity("AutonomyApi.Models.Entities.Budget", b =>
@@ -217,6 +378,15 @@ namespace AutonomyApi.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired()
                         .HasConstraintName("fk_budget_items_budgets_budget_id");
+
+                    b.HasOne("AutonomyApi.Models.Entities.Currency", "Currency")
+                        .WithMany()
+                        .HasForeignKey("CurrencyId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_budget_items_currencies_currency_id");
+
+                    b.Navigation("Currency");
                 });
 
             modelBuilder.Entity("AutonomyApi.Models.Entities.Client", b =>
@@ -237,6 +407,57 @@ namespace AutonomyApi.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired()
                         .HasConstraintName("fk_client_documents_clients_client_id");
+                });
+
+            modelBuilder.Entity("AutonomyApi.Models.Entities.Schedule", b =>
+                {
+                    b.HasOne("AutonomyApi.Models.Entities.Service", "Service")
+                        .WithMany()
+                        .HasForeignKey("ServiceId")
+                        .HasConstraintName("fk_schedules_services_service_id");
+
+                    b.HasOne("AutonomyApi.Models.Entities.User", null)
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_schedules_users_user_id");
+
+                    b.Navigation("Service");
+                });
+
+            modelBuilder.Entity("AutonomyApi.Models.Entities.Service", b =>
+                {
+                    b.HasOne("AutonomyApi.Models.Entities.Budget", "BudgetTemplate")
+                        .WithMany()
+                        .HasForeignKey("BudgetTemplateId")
+                        .HasConstraintName("fk_services_budgets_budget_template_id");
+
+                    b.HasOne("AutonomyApi.Models.Entities.User", null)
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_services_users_user_id");
+
+                    b.Navigation("BudgetTemplate");
+                });
+
+            modelBuilder.Entity("ClientSchedule", b =>
+                {
+                    b.HasOne("AutonomyApi.Models.Entities.Client", null)
+                        .WithMany()
+                        .HasForeignKey("ClientsId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_client_schedule_clients_clients_id");
+
+                    b.HasOne("AutonomyApi.Models.Entities.Schedule", null)
+                        .WithMany()
+                        .HasForeignKey("ScheduleId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_client_schedule_schedules_schedule_id");
                 });
 
             modelBuilder.Entity("AutonomyApi.Models.Entities.Budget", b =>

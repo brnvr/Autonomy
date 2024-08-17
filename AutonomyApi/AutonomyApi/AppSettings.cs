@@ -1,4 +1,6 @@
-﻿using Npgsql;
+﻿using AutonomyApi.Enums;
+using AutonomyApi.WebService;
+using AutonomyApi.Validators;
 
 namespace AutonomyApi
 {
@@ -9,6 +11,5 @@ namespace AutonomyApi
         static internal readonly string JwtIssuer = _configuration["Jwt:Issuer"] ?? string.Empty;
         static internal readonly string JwtKey = _configuration["Jwt:Key"] ?? string.Empty;
         static internal readonly string ConnectionString = _configuration.GetConnectionString("Postgres") ?? string.Empty;
-
     }
 }

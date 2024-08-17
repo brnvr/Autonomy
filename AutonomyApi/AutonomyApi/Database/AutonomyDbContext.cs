@@ -1,9 +1,8 @@
 ﻿using AutonomyApi.Enums;
 using AutonomyApi.Models.Entities;
-using AutonomyApi.Models.Views.User;
+using AutonomyApi.Models.ViewModels.User;
 using AutonomyApi.Services;
 using Microsoft.EntityFrameworkCore;
-using Npgsql;
 
 namespace AutonomyApi.Database
 {
@@ -14,6 +13,9 @@ namespace AutonomyApi.Database
         public DbSet<ClientDocument> ClientDocuments { get; set; }
         public DbSet<Budget> Budgets { get; set; }
         public DbSet<BudgetItem> BudgetItems { get; set; }
+        public DbSet<Service> Services { get; set; }
+        public DbSet<Currency> Currencies { get; set; }
+        public DbSet<Schedule> Schedules { get; set; }
 
         public AutonomyDbContext(DbContextOptions<AutonomyDbContext> options) : base(options) { }
 
@@ -23,7 +25,7 @@ namespace AutonomyApi.Database
             {
                 var userService = new UserService(this);
 
-                userService.Create(new UserCreationData
+                userService.Create(new UserCreationView
                 {
                     Name = "admin",
                     Password = "admin"
@@ -39,8 +41,11 @@ namespace AutonomyApi.Database
             OnUserModelCreating(modelBuilder.Entity<User>());
             OnClientModelCreating(modelBuilder.Entity<Client>());
             OnClientDocumentModelCreating(modelBuilder.Entity<ClientDocument>());
-            OnBudgeModelCreating(modelBuilder.Entity<Budget>());
+            OnBudgetModelCreating(modelBuilder.Entity<Budget>());
             OnBudgetItemModelCreating(modelBuilder.Entity<BudgetItem>());
+            OnServiceModelCreating(modelBuilder.Entity<Service>());
+            OnCurrencyModelCreating(modelBuilder.Entity<Currency>());
+            OnScheduleModelCreating(modelBuilder.Entity<Schedule>());
 
             base.OnModelCreating(modelBuilder);
         }

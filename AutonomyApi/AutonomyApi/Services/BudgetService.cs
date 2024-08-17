@@ -1,10 +1,8 @@
 ﻿using AutonomyApi.Database;
 using AutonomyApi.Models.Entities;
-using AutonomyApi.Models.Views.Budget;
+using AutonomyApi.Models.ViewModels.Budget;
 using AutonomyApi.Repositories;
-using AutonomyApi.WebService;
 using AutonomyApi.WebService.DynamicFilters;
-using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace AutonomyApi.Services
 {
@@ -17,30 +15,47 @@ namespace AutonomyApi.Services
             _dbContext = dbContext;
         }
 
-        public List<BudgetSummary> Get(int userId, string? search)
+        public List<BudgetSummaryView> Get(int userId, string? search)
         {
-            var filters = new DynamicFilterPipeline<BudgetSummary>
+            var filters = new DynamicFilterPipeline<BudgetSummaryView>
             {
-                new TextMatchFilter<BudgetSummary>(budget => budget.Name, search)
+                new TextMatchFilter<BudgetSummaryView>(budget => budget.Name, search)
             };
 
-            return new BudgetRepository(_dbContext).FindAll(userId, filters);
+            return new BudgetRepository(_dbContext).FindAll(userId, false, filters);
         }
 
-        public Budget Get(int userId, int id)
+        public BudgetPresentationView Get(int userId, int id)
         {
-            return new BudgetRepository(_dbContext).Find(userId, id);
+            var budget = new BudgetRepository(_dbContext).Find(userId, id, false);
+
+            return new BudgetPresentationView
+            {
+                Id = budget.Id,
+                Name = budget.Name,
+                Header = budget.Header,
+                Footer = budget.Footer,
+                Items = budget.Items.Select(item => new BudgetItemPresentationView
+                {
+                    Name = item.Name,
+                    Quantity = item.Quantity,
+                    UnitPrice = item.UnitPrice,
+                    Currency = item.Currency,
+                    Duration = item.Duration,
+                    DurationTimeUnit = item.DurationTimeUnit
+                }).ToList()
+            };
         }
 
-        public int Add(int userId, BudgetCreationData data)
+        public int Add(int userId, BudgetCreationView data)
         {
             var budget = new Budget
             {
                 Name = data.Name,
-                Header = data.Header,
-                Footer = data.Footer,
                 UserId = userId,
-                Items = data.Items
+                Items = new List<BudgetItem>(),
+                IsTemplate = false,
+                CreationDate = DateTime.UtcNow
             };
 
             new BudgetRepository(_dbContext).Add(budget);
@@ -50,16 +65,15 @@ namespace AutonomyApi.Services
             return budget.Id;
         }
 
-        public void Update(int userId, int id, BudgetUpdateData data)
+        public void Update(int userId, int id, BudgetUpdateView data)
         {
             using (var transaction = _dbContext.Database.BeginTransaction())
             {
-                var budget = new BudgetRepository(_dbContext).Find(userId, id);
+                var budget = new BudgetRepository(_dbContext).Find(userId, id, false);
 
                 budget.Name = data.Name;
                 budget.Header = data.Header;
                 budget.Footer = data.Footer;
-                budget.Items = data.Items;
 
                 _dbContext.SaveChanges();
                 transaction.Commit();
@@ -71,10 +85,24 @@ namespace AutonomyApi.Services
             using (var transaction = _dbContext.Database.BeginTransaction())
             {
                 var repo = new BudgetRepository(_dbContext);
-                var budget = repo.Find(userId, id);
+                var budget = repo.Find(userId, id, false);
 
                 repo.Remove(budget);
 
+                _dbContext.SaveChanges();
+                transaction.Commit();
+            }
+        }
+
+        public void UpdateItems(int userId, int id, BudgetItemUpdateViewList data)
+        {
+            using (var transaction = _dbContext.Database.BeginTransaction())
+            {
+                var repo = new BudgetRepository(_dbContext);
+                var budget = repo.Find(userId, id, false);
+
+                budget.Items = data.ToBudgetItemList();
+                
                 _dbContext.SaveChanges();
                 transaction.Commit();
             }

@@ -2,12 +2,8 @@
 using AutonomyApi.WebService;
 using AutonomyApi.Services;
 using Microsoft.AspNetCore.Mvc;
-using AutonomyApi.Models.Dtos;
-using AutonomyApi.Models.Dtos.Client;
-using AutonomyApi.Models.Views.Client;
-using AutonomyApi.Models.Entities;
-using AutonomyApi.Enums;
-using AutonomyApi.Models.Views.Budget;
+using AutonomyApi.Models.ViewModels.Budget;
+using Microsoft.AspNetCore.JsonPatch;
 
 namespace AutonomyApi.Controllers
 {
@@ -22,6 +18,15 @@ namespace AutonomyApi.Controllers
         {
             _dbContext = dbContext;
             _ws = new WebServiceManager(this);
+        }
+
+        [HttpPatch("[Action]")]
+        public IActionResult PatchTest(JsonPatchDocument<BudgetCreationView> lol)
+        {
+            return _ws.Perform(() =>
+            {
+                return Ok(lol);
+            });
         }
 
         /// <summary>
@@ -39,7 +44,7 @@ namespace AutonomyApi.Controllers
         }
 
         /// <summary>
-        /// Find a budget by id
+        /// Find budget by id
         /// </summary>
         /// <param name="id">Budget id</param>
         /// <returns></returns>
@@ -53,12 +58,12 @@ namespace AutonomyApi.Controllers
         }
 
         /// <summary>
-        /// Create a budget
+        /// Create budget
         /// </summary>
         /// <param name="data">Data</param>
         /// <returns></returns>
         [HttpPost]
-        public IActionResult Post(BudgetCreationData data)
+        public IActionResult Post(BudgetCreationView data)
         {
             return _ws.Perform(() =>
             {
@@ -69,13 +74,13 @@ namespace AutonomyApi.Controllers
         }
 
         /// <summary>
-        /// Update a budget
+        /// Update budget
         /// </summary>
         /// <param name="id">Budget id</param>
         /// <param name="data">Data</param>
         /// <returns></returns>
         [HttpPut("{id}")]
-        public IActionResult Put( int id, BudgetUpdateData data)
+        public IActionResult Put(int id, BudgetUpdateView data)
         {
             return _ws.Perform(() =>
             {
@@ -84,7 +89,7 @@ namespace AutonomyApi.Controllers
         }
 
         /// <summary>
-        /// Remove a budget
+        /// Remove budget
         /// </summary>
         /// <param name="id">Budget id</param>
         /// <returns></returns>
@@ -94,6 +99,21 @@ namespace AutonomyApi.Controllers
             return _ws.Perform(() =>
             {
                 new BudgetService(_dbContext).Remove(1, id);
+            });
+        }
+
+        /// <summary>
+        /// Update items from budget
+        /// </summary>
+        /// <param name="id">Budget id</param>
+        /// <param name="data">Items</param>
+        /// <returns></returns>
+        [HttpPut("{id}/Items")]
+        public IActionResult PutItems(int id, BudgetItemUpdateViewList data)
+        {
+            return _ws.Perform(() =>
+            {
+                new BudgetService(_dbContext).UpdateItems(1, id, data);
             });
         }
     }

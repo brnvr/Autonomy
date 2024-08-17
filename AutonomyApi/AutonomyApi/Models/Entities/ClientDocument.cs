@@ -4,7 +4,7 @@ namespace AutonomyApi.Models.Entities
 {
     public class ClientDocument
     {
-        internal int ClientId { get; set; }
+        public int ClientId { internal get; set; }
         public required DocumentType Type { get; set; }
         public required string Value { get; set; }
     }

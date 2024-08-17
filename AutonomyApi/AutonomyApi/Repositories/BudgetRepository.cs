@@ -1,6 +1,6 @@
 ﻿using AutonomyApi.Database;
 using AutonomyApi.Models.Entities;
-using AutonomyApi.Models.Views.Budget;
+using AutonomyApi.Models.ViewModels.Budget;
 using AutonomyApi.WebService;
 using AutonomyApi.WebService.DynamicFilters;
 using AutonomyApi.WebService.Exceptions;
@@ -12,10 +12,10 @@ namespace AutonomyApi.Repositories
     {
         public BudgetRepository(AutonomyDbContext dbContext) : base(dbContext, ctx => ctx.Budgets) { }
 
-        public Budget Find(int userId, int id)
+        public Budget Find(int userId, int id, bool? isTemplate)
         {
             var query = from budget in Entities
-                        where budget.UserId == userId && budget.Id == id
+                        where budget.UserId == userId && budget.Id == id && (isTemplate == null || budget.IsTemplate == isTemplate)
                         select budget;
 
             var result = Compose(query).FirstOrDefault();
@@ -28,11 +28,11 @@ namespace AutonomyApi.Repositories
             return result;
         }
 
-        public List<BudgetSummary> FindAll(int userId, DynamicFilterPipeline<BudgetSummary>? filter = null)
+        public List<BudgetSummaryView> FindAll(int userId, bool? isTemplate, DynamicFilterPipeline<BudgetSummaryView>? filter = null)
         {
             var query = from budget in Entities
-                        where budget.UserId == userId
-                        select new BudgetSummary
+                        where budget.UserId == userId && (isTemplate == null || budget.IsTemplate == isTemplate)
+                        select new BudgetSummaryView
                         {
                             Id = budget.Id,
                             Name = budget.Name
@@ -48,7 +48,9 @@ namespace AutonomyApi.Repositories
 
         public override IQueryable<Budget> Compose(IQueryable<Budget> query)
         {
-            return query.Include(c => c.Items);
+            return query
+                .Include(c => c.Items)
+                .ThenInclude(item => item.Currency);
         }
     }
 }

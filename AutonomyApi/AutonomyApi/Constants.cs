@@ -23,7 +23,6 @@
 
         public static class Document
         {
-            public const int MinLength = 3;
             public const int MaxLength = 20;
         }
     }

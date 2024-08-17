@@ -1,7 +1,7 @@
 ﻿using AutonomyApi.WebService;
 using AutonomyApi.Services;
 using Microsoft.AspNetCore.Mvc;
-using AutonomyApi.Models.ViewModels.Client;
+using AutonomyApi.Models.ViewModels.Service;
 using AutonomyApi.Enums;
 using AutonomyApi.Database;
 
@@ -9,19 +9,19 @@ namespace AutonomyApi.Controllers
 {
     [ApiController]
     [Route("[controller]")]
-    public class ClientsController : Controller
+    public class ServicesController : Controller
     {
         AutonomyDbContext _dbContext;
         WebServiceManager _ws;
 
-        public ClientsController(AutonomyDbContext dbContext)
+        public ServicesController(AutonomyDbContext dbContext)
         {
             _dbContext = dbContext;
             _ws = new WebServiceManager(this);
         }
 
         /// <summary>
-        /// List all clients
+        /// List all services
         /// </summary>
         /// <param name="search">Name filter (optional)</param>
         /// <returns></returns>
@@ -30,81 +30,81 @@ namespace AutonomyApi.Controllers
         {
             return _ws.Perform(() =>
             {
-                return Ok(new ClientService(_dbContext).Get(1, search));
+                return Ok(new ServiceService(_dbContext).Get(1, search));
             });
         }
 
         /// <summary>
-        /// Find client by id
+        /// Find service by id
         /// </summary>
-        /// <param name="id">Client id</param>
+        /// <param name="id">Service id</param>
         /// <returns></returns>
         [HttpGet("{id}")]
         public IActionResult Get(int id)
         {
             return _ws.Perform(() =>
             {
-                return Ok(new ClientService(_dbContext).Get(1, id));
+                return Ok(new ServiceService(_dbContext).Get(1, id));
             });
         }
 
         /// <summary>
-        /// Register new client
+        /// Register new service
         /// </summary>
-        /// <param name="data">Client data</param>
+        /// <param name="data">Service data</param>
         /// <returns></returns>
         [HttpPost]
-        public IActionResult Post(ClientCreationView data)
+        public IActionResult Post(ServiceCreationView data)
         {
             return _ws.Perform(() =>
             {
-                var id = new ClientService(_dbContext).Create(1, data);
+                var id = new ServiceService(_dbContext).Create(1, data);
 
                 return CreatedAtAction(nameof(Get), new { id }, new { id });
             });
         }
 
         /// <summary>
-        /// Update client
+        /// Update service
         /// </summary>
-        /// <param name="id">Client id</param>
-        /// <param name="data">Client data</param>
+        /// <param name="id">Service id</param>
+        /// <param name="data">Service data</param>
         /// <returns></returns>
         [HttpPut("{id}")]
-        public IActionResult Put(int id, ClientUpdateView data)
+        public IActionResult Put(int id, ServiceUpdateView data)
         {
             return _ws.Perform(() =>
             {
-                new ClientService(_dbContext).Update(1, id, data);
+                new ServiceService(_dbContext).Update(1, id, data);
             });
         }
 
         /// <summary>
-        /// Remove client
+        /// Remove service
         /// </summary>
-        /// <param name="id">Client id</param>
+        /// <param name="id">Service id</param>
         /// <returns></returns>
         [HttpDelete("{id}")]
         public IActionResult Delete(int id)
         {
             return _ws.Perform(() =>
             {
-                new ClientService(_dbContext).Remove(1, id);
+                new ServiceService(_dbContext).Remove(1, id);
             });
         }
 
         /// <summary>
-        /// Assign document to client
+        /// Update service's budget template
         /// </summary>
-        /// <param name="id">Client id</param>
+        /// <param name="id">Service id</param>
         /// <param name="data">Document</param>
         /// <returns></returns>
-        [HttpPut("{id}/Documents")]
-        public IActionResult PutDocument(int id, ClientDocumentUpdateView data)
+        [HttpPut("{id}/BudgetTemplate")]
+        public IActionResult PutDocument(int id, BudgetTemplateUpdateView? data)
         {
             return _ws.Perform(() =>
             {
-                new ClientService(_dbContext).UpdateDocument(1, id, data);
+                new ServiceService(_dbContext).UpdateBudgetTemplate(1, id, data);
             });
         }
     }

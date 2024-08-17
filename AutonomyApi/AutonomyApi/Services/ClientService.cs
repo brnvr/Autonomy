@@ -1,11 +1,8 @@
 ﻿using AutonomyApi.Database;
 using AutonomyApi.Enums;
-using AutonomyApi.Models.Dtos.Client;
 using AutonomyApi.Models.Entities;
-using AutonomyApi.Models.Views.Budget;
-using AutonomyApi.Models.Views.Client;
+using AutonomyApi.Models.ViewModels.Client;
 using AutonomyApi.Repositories;
-using AutonomyApi.WebService;
 using AutonomyApi.WebService.DynamicFilters;
 using AutonomyApi.WebService.Exceptions;
 
@@ -20,11 +17,11 @@ namespace AutonomyApi.Services
             _dbContext = dbContext;
         }
 
-        public List<ClientSummary> Get(int userId, string? search)
+        public List<ClientSummaryView> Get(int userId, string? search)
         {
-            var filters = new DynamicFilterPipeline<ClientSummary>
+            var filters = new DynamicFilterPipeline<ClientSummaryView>
             {
-                new TextMatchFilter<ClientSummary>(client => client.Name, search)
+                new TextMatchFilter<ClientSummaryView>(client => client.Name, search)
             };
 
             return new ClientRepository(_dbContext).FindAll(userId, filters);
@@ -35,14 +32,14 @@ namespace AutonomyApi.Services
             return new ClientRepository(_dbContext).Find(userId, id);
         }
 
-        public int Create(int userId, ClientCreationData data)
+        public int Create(int userId, ClientCreationView data)
         {
             var client = new Client
             {
                 UserId = userId,
                 Name = data.Name,
                 Documents = new List<ClientDocument>(),
-                RegistrationDate = DateTime.UtcNow
+                CreationDate = DateTime.UtcNow
             };
 
             new ClientRepository(_dbContext).Add(client);
@@ -51,7 +48,7 @@ namespace AutonomyApi.Services
             return client.Id;
         }
 
-        public void Update(int userId, int id, ClientUpdateData data)
+        public void Update(int userId, int id, ClientUpdateView data)
         {
             using (var transaction = _dbContext.Database.BeginTransaction())
             {
@@ -78,45 +75,38 @@ namespace AutonomyApi.Services
             }
         }
 
-        public void UpdateDocument(int userId, int clientId, DocumentType type, ClientDocumentUpdateData data)
+        public void UpdateDocument(int userId, int clientId, ClientDocumentUpdateView data)
         {
+            var repo = new ClientRepository(_dbContext);
+
             using (var transaction = _dbContext.Database.BeginTransaction())
             {
-                var client = new ClientRepository(_dbContext).Find(userId, clientId);
+                var client = repo.Find(userId, clientId);
 
-                var document = client.Documents.Find(document => document.Type == type);
+                var document = client.Documents.Find(document => document.Type == data.Type);
 
                 if (document is null)
                 {
-                    client.Documents.Add(new ClientDocument
+                    if (!string.IsNullOrEmpty(data.Value))
                     {
-                        Type = type,
-                        Value = data.Value
-                    });
+                        client.Documents.Add(new ClientDocument
+                        {
+                            Type = data.Type,
+                            Value = data.Value
+                        });
+                    }
                 }
                 else
                 {
-                    document.Value = data.Value;
+                    if (string.IsNullOrEmpty(data.Value))
+                    {
+                        repo.Remove(client);
+                    }
+                    else
+                    {
+                        document.Value = data.Value;
+                    }
                 }
-
-                _dbContext.SaveChanges();
-                transaction.Commit();
-            }
-        }
-
-        public void RemoveDocument(int userId, int clientId, DocumentType type)
-        {
-            using (var transaction = _dbContext.Database.BeginTransaction())
-            {
-                var client = new ClientRepository(_dbContext).Find(userId, clientId);
-                var document = client.Documents.Find(document => document.Type == type);
-
-                if (document is null)
-                {
-                    throw new EntityNotFoundException($"Document of type {type} not found for client {clientId}.", null);
-                }
-
-                client.Documents.Remove(document);
 
                 _dbContext.SaveChanges();
                 transaction.Commit();

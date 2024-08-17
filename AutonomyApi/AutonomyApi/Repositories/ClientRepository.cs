@@ -1,6 +1,6 @@
 ﻿using AutonomyApi.Database;
 using AutonomyApi.Models.Entities;
-using AutonomyApi.Models.Views.Client;
+using AutonomyApi.Models.ViewModels.Client;
 using AutonomyApi.WebService;
 using AutonomyApi.WebService.DynamicFilters;
 using AutonomyApi.WebService.Exceptions;
@@ -28,11 +28,11 @@ namespace AutonomyApi.Repositories
             return result;
         }
 
-        public List<ClientSummary> FindAll(int userId, DynamicFilterPipeline<ClientSummary>? filter = null)
+        public List<ClientSummaryView> FindAll(int userId, DynamicFilterPipeline<ClientSummaryView>? filter = null)
         {
             var query = from client in Entities
                         where client.UserId == userId
-                        select new ClientSummary
+                        select new ClientSummaryView
                         {
                             Id = client.Id,
                             Name = client.Name

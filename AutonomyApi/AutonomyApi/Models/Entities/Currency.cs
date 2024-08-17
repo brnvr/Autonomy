@@ -1,10 +1,10 @@
 ﻿namespace AutonomyApi.Models.Entities
 {
-    public class User
+    public class Currency
     {
         public int Id { get; set; }
+        public required string Code { get; set; }
         public required string Name { get; set; }
-        public required string Password { get; set; }
-        public required DateTime CreationDate { get; set; }
+        public required string Symbol { get; set; }
     }
 }
