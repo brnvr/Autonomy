@@ -7,7 +7,6 @@
         public required string Name { get; set; }
         public string? Description { get; set; }
         public int? BudgetTemplateId { get; set; }
-        public Budget? BudgetTemplate { get; set; }
         public required DateTime CreationDate { get; set; }
     }
 }

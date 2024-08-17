@@ -3,8 +3,6 @@ using AutonomyApi.Models.Entities;
 using AutonomyApi.Models.ViewModels.Service;
 using AutonomyApi.WebService;
 using AutonomyApi.WebService.DynamicFilters;
-using AutonomyApi.WebService.Exceptions;
-using Microsoft.EntityFrameworkCore;
 
 namespace AutonomyApi.Repositories
 {
@@ -18,14 +16,7 @@ namespace AutonomyApi.Repositories
                         where service.UserId == userId && service.Id == id
                         select service;
 
-            var result = Compose(query).FirstOrDefault();
-
-            if (result ==  null)
-            {
-                throw new EntityNotFoundException(typeof(Service), id);
-            }
-
-            return result;
+            return FromQuery(query, id);
         }
 
         public List<ServiceSummaryView> FindAll(int userId, DynamicFilterPipeline<ServiceSummaryView>? filter = null)
@@ -39,21 +30,7 @@ namespace AutonomyApi.Repositories
                             Description = service.Description
                         };
 
-            if (filter == null)
-            {
-                return query.ToList();
-            }
-
-            return filter.GetDelegate()(query).ToList();
-        }
-
-        public override IQueryable<Service> Compose(IQueryable<Service> query)
-        {
-            return query
-                .Include(s => s.BudgetTemplate)
-#nullable disable
-                .ThenInclude(template => template.Items)
-                .ThenInclude(item => item.Currency);
+            return GetFiltered(query, filter);
         }
     }
 }

@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using AutonomyApi.Models.ViewModels.Service;
 using AutonomyApi.Enums;
 using AutonomyApi.Database;
+using AutonomyApi.Models.Entities;
 
 namespace AutonomyApi.Controllers
 {
@@ -94,17 +95,45 @@ namespace AutonomyApi.Controllers
         }
 
         /// <summary>
+        /// Get service's budget template
+        /// </summary>
+        /// <param name="id">Service id</param>
+        /// <returns></returns>
+        [HttpGet("{id}/BudgetTemplate")]
+        public IActionResult GetBudgetTemplate(int id)
+        {
+            return _ws.Perform(() =>
+            {
+                return Ok(new ServiceService(_dbContext).GetBudgetTemplate(1, id));
+            });
+        }
+
+        /// <summary>
         /// Update service's budget template
         /// </summary>
         /// <param name="id">Service id</param>
         /// <param name="data">Document</param>
         /// <returns></returns>
         [HttpPut("{id}/BudgetTemplate")]
-        public IActionResult PutDocument(int id, BudgetTemplateUpdateView? data)
+        public IActionResult PutBudgetTemplate(int id, BudgetTemplateUpdateView data)
         {
             return _ws.Perform(() =>
             {
                 new ServiceService(_dbContext).UpdateBudgetTemplate(1, id, data);
+            });
+        }
+
+        /// <summary>
+        /// Remove service's budget template
+        /// </summary>
+        /// <param name="id">Service id</param>
+        /// <returns></returns>
+        [HttpDelete("{id}/BudgetTemplate")]
+        public IActionResult DeleteBudgetTemplate(int id)
+        {
+            return _ws.Perform(() =>
+            {
+                new ServiceService(_dbContext).RemoveBudgetTemplate(1, id);
             });
         }
     }

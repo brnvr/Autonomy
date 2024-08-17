@@ -18,14 +18,7 @@ namespace AutonomyApi.Repositories
                         where client.UserId == userId && client.Id == id
                         select client;
 
-            var result = Compose(query).FirstOrDefault();
-
-            if (result ==  null)
-            {
-                throw new EntityNotFoundException(typeof(Client), id);
-            }
-
-            return result;
+            return FromQuery(query, id);
         }
 
         public List<ClientSummaryView> FindAll(int userId, DynamicFilterPipeline<ClientSummaryView>? filter = null)
@@ -38,15 +31,10 @@ namespace AutonomyApi.Repositories
                             Name = client.Name
                         };
 
-            if (filter == null)
-            {
-                return query.ToList();
-            }
-
-            return filter.GetDelegate()(query).ToList();
+            return GetFiltered(query, filter);
         }
 
-        public override IQueryable<Client> Compose(IQueryable<Client> query)
+        protected override IQueryable<Client> Compose(IQueryable<Client> query)
         {
             return query.Include(c => c.Documents);
         }

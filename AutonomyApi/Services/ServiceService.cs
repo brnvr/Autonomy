@@ -79,24 +79,22 @@ namespace AutonomyApi.Services
             }
         }
 
-        public void UpdateBudgetTemplate(int userId, int id, BudgetTemplateUpdateView? data)
+        public Budget GetBudgetTemplate(int userId, int id)
+        {
+            return new BudgetRepository(_dbContext).FindByServiceId(userId, id);
+        }
+
+        public void UpdateBudgetTemplate(int userId, int id, BudgetTemplateUpdateView data)
         {
             using (var transaction = _dbContext.Database.BeginTransaction())
             {
-                var repo = new ServiceRepository(_dbContext);
-                var service = repo.Find(userId, id);
+                var serviceRepo = new ServiceRepository(_dbContext);
+                var budgetRepo = new BudgetRepository(_dbContext);
+                var service = serviceRepo.Find(userId, id);
 
-                if (data == null)
+                if (service.BudgetTemplateId == null)
                 {
-                    if (service.BudgetTemplate != null)
-                    {
-                        new BudgetRepository(_dbContext).Remove(service.BudgetTemplate);
-                        service.BudgetTemplateId = null;
-                    }
-                }
-                else if (service.BudgetTemplate == null)
-                {
-                    service.BudgetTemplate = new Budget
+                    var budget = new Budget
                     {
                         Name = data.Name,
                         Header = data.Header,
@@ -106,13 +104,42 @@ namespace AutonomyApi.Services
                         CreationDate = DateTime.UtcNow,
                         Items = data.Items.ToBudgetItemList()
                     };
+
+                    budgetRepo.Add(budget);
+
+                    _dbContext.SaveChanges();
+
+                    service.BudgetTemplateId = budget.Id;
                 }
                 else
                 {
-                    service.BudgetTemplate.Name = data.Name;
-                    service.BudgetTemplate.Header = data.Header;
-                    service.BudgetTemplate.Footer = data.Footer;
-                    service.BudgetTemplate.Items = data.Items.ToBudgetItemList();
+                    var budget = budgetRepo.Find(userId, (int)service.BudgetTemplateId, null);
+
+                    budget.Name = data.Name;
+                    budget.Header = data.Header;
+                    budget.Footer = data.Footer;
+                    budget.Items = data.Items.ToBudgetItemList();
+                }
+
+                _dbContext.SaveChanges();
+                transaction.Commit();
+            }
+        }
+
+        public void RemoveBudgetTemplate(int userId, int id)
+        {
+            using (var transaction = _dbContext.Database.BeginTransaction())
+            {
+                var serviceRepo = new ServiceRepository(_dbContext);
+                var service = serviceRepo.Find(userId, id);
+
+                if (service.BudgetTemplateId != null)
+                {
+                    var budgetRepo = new BudgetRepository(_dbContext);
+                    var budget = budgetRepo.Find(userId, (int)service.BudgetTemplateId, null);
+
+                    budgetRepo.Remove(budget);
+                    service.BudgetTemplateId = null; 
                 }
 
                 _dbContext.SaveChanges();

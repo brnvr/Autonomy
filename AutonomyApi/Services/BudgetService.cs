@@ -47,7 +47,7 @@ namespace AutonomyApi.Services
             };
         }
 
-        public int Add(int userId, BudgetCreationView data)
+        public int Create(int userId, BudgetCreationView data)
         {
             var budget = new Budget
             {
@@ -63,6 +63,43 @@ namespace AutonomyApi.Services
             _dbContext.SaveChanges();
 
             return budget.Id;
+        }
+
+        public int Copy(int userId, int id, string name)
+        {
+            var repo = new BudgetRepository(_dbContext);
+
+            using (var transaction = _dbContext.Database.BeginTransaction())
+            {
+                var budget = repo.Find(userId, id, null);
+
+                var newBudget = new Budget
+                {
+                    Name = name,
+                    Header = budget.Header,
+                    Footer = budget.Footer,
+                    IsTemplate = false,
+                    UserId = userId,
+                    Items = budget.Items.Select(item => new BudgetItem
+                    {
+                        Name = item.Name,
+                        Position = item.Position,
+                        Quantity = item.Quantity,
+                        CurrencyId = item.CurrencyId,
+                        UnitPrice = item.UnitPrice,
+                        Duration = item.Duration,
+                        DurationTimeUnit = item.DurationTimeUnit
+                    }).ToList(),
+                    CreationDate = DateTime.UtcNow
+                };
+
+                repo.Add(newBudget);
+
+                _dbContext.SaveChanges();
+                transaction.Commit();
+
+                return newBudget.Id;
+            }
         }
 
         public void Update(int userId, int id, BudgetUpdateView data)

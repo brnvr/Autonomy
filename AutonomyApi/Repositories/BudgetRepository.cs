@@ -18,14 +18,18 @@ namespace AutonomyApi.Repositories
                         where budget.UserId == userId && budget.Id == id && (isTemplate == null || budget.IsTemplate == isTemplate)
                         select budget;
 
-            var result = Compose(query).FirstOrDefault();
+            return FromQuery(query);
+        }
 
-            if (result ==  null)
-            {
-                throw new EntityNotFoundException(typeof(Budget), id);
-            }
+        public Budget FindByServiceId(int userId, int serviceId)
+        {
+            var query = from budget in Entities
+                        join service in DbContext.Services
+                        on budget.Id equals service.BudgetTemplateId
+                        where budget.UserId == userId
+                        select budget;
 
-            return result;
+            return FromQuery(query);
         }
 
         public List<BudgetSummaryView> FindAll(int userId, bool? isTemplate, DynamicFilterPipeline<BudgetSummaryView>? filter = null)
@@ -38,15 +42,10 @@ namespace AutonomyApi.Repositories
                             Name = budget.Name
                         };
 
-            if (filter == null)
-            {
-                return query.ToList();
-            }
-
-            return filter.GetDelegate()(query).ToList();
+            return GetFiltered(query, filter);
         }
 
-        public override IQueryable<Budget> Compose(IQueryable<Budget> query)
+        protected override IQueryable<Budget> Compose(IQueryable<Budget> query)
         {
             return query
                 .Include(c => c.Items)

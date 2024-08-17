@@ -21,7 +21,7 @@ namespace AutonomyApi.Database
                 .Property(serv => serv.Description)
                 .HasMaxLength(Constants.Description.MaxLength);
             builder
-                .HasOne(serv => serv.BudgetTemplate)
+                .HasOne<Budget>()
                 .WithMany()
                 .HasForeignKey(serv => serv.BudgetTemplateId);
         }

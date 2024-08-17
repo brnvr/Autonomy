@@ -4,6 +4,7 @@ using AutonomyApi.Services;
 using Microsoft.AspNetCore.Mvc;
 using AutonomyApi.Models.ViewModels.Budget;
 using Microsoft.AspNetCore.JsonPatch;
+using System.ComponentModel.DataAnnotations;
 
 namespace AutonomyApi.Controllers
 {
@@ -18,15 +19,6 @@ namespace AutonomyApi.Controllers
         {
             _dbContext = dbContext;
             _ws = new WebServiceManager(this);
-        }
-
-        [HttpPatch("[Action]")]
-        public IActionResult PatchTest(JsonPatchDocument<BudgetCreationView> lol)
-        {
-            return _ws.Perform(() =>
-            {
-                return Ok(lol);
-            });
         }
 
         /// <summary>
@@ -67,9 +59,26 @@ namespace AutonomyApi.Controllers
         {
             return _ws.Perform(() =>
             {
-                var id = new BudgetService(_dbContext).Add(1, data);
+                var id = new BudgetService(_dbContext).Create(1, data);
 
                 return CreatedAtAction(nameof(Get), new { id }, new { id });
+            });
+        }
+
+        /// <summary>
+        /// Copy budget
+        /// </summary>
+        /// <param name="id">Source budget id</param>
+        /// <param name="name">Name of the new budget</param>
+        /// <returns></returns>
+        [HttpPost("Copy")]
+        public IActionResult Copy([Required]int id, [Required]string name)
+        {
+            return _ws.Perform(() =>
+            {
+                var newId = new BudgetService(_dbContext).Copy(1, id, name);
+
+                return CreatedAtAction(nameof(Get), new { id = newId }, new { id = newId });
             });
         }
 

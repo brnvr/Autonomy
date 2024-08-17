@@ -1,6 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using AutonomyApi.WebService.Exceptions;
 using AutonomyApi.WebService.DynamicFilters;
+using AutonomyApi.Models.Entities;
 
 namespace AutonomyApi.WebService
 {
@@ -71,9 +72,43 @@ namespace AutonomyApi.WebService
             return filter(Entities).Any();
         }
 
-        public virtual IQueryable<TEntity> Compose(IQueryable<TEntity> query)
+        protected virtual IQueryable<TEntity> Compose(IQueryable<TEntity> query)
         {
             return query;
         }
+
+        protected List<T> GetFiltered<T>(IQueryable<T> query, DynamicFilterPipeline<T>? filter)
+        {
+            if (filter == null)
+            {
+                return query.ToList();
+            }
+
+            return filter.GetDelegate()(query).ToList();
+        }
+
+        protected TEntity FromQuery(IQueryable<TEntity> query, params object[] keyValues)
+        {
+            return FromQuery<TEntity>(Compose(query), keyValues);
+        }
+
+        protected T FromQuery<T>(IQueryable<T> query, params object[] keyValues)
+        {
+            var result = query.FirstOrDefault();
+
+            if (result == null)
+            {
+                if (keyValues.Count() > 0)
+                {
+                    throw new EntityNotFoundException(typeof(TEntity), keyValues);
+                }
+
+                throw new EntityNotFoundException(typeof(TEntity));
+            }
+
+            return result;
+        }
+
+        
     }
 }
