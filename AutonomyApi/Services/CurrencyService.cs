@@ -18,7 +18,7 @@ namespace AutonomyApi.Services
         {
             var filters = new DynamicFilterPipeline<Currency>
             {
-                { new TextMatchFilter<Currency>(currency => currency.Code + currency.Name, search) }
+                new SubstringFilter<Currency>(search, currency => [ currency.Code, currency.Name ])
             };
 
             return new CurrencyRepository(_dbContext).FindAll(filters.GetDelegate());

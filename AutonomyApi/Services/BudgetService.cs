@@ -2,6 +2,7 @@
 using AutonomyApi.Models.Entities;
 using AutonomyApi.Models.ViewModels.Budget;
 using AutonomyApi.Repositories;
+using AutonomyApi.WebService;
 using AutonomyApi.WebService.DynamicFilters;
 
 namespace AutonomyApi.Services
@@ -15,14 +16,9 @@ namespace AutonomyApi.Services
             _dbContext = dbContext;
         }
 
-        public List<BudgetSummaryView> Get(int userId, string? search)
+        public SearchResults<BudgetSummaryView> Get(int userId, BudgetSearchView search)
         {
-            var filters = new DynamicFilterPipeline<BudgetSummaryView>
-            {
-                new TextMatchFilter<BudgetSummaryView>(budget => budget.Name, search)
-            };
-
-            return new BudgetRepository(_dbContext).FindAll(userId, false, filters);
+            return new BudgetRepository(_dbContext).FindAll(userId, false, search);
         }
 
         public BudgetPresentationView Get(int userId, int id)

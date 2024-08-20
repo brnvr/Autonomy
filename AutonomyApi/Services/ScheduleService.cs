@@ -2,7 +2,7 @@
 using AutonomyApi.Models.Entities;
 using AutonomyApi.Models.ViewModels.Schedule;
 using AutonomyApi.Repositories;
-using AutonomyApi.WebService.DynamicFilters;
+using AutonomyApi.WebService;
 
 namespace AutonomyApi.Schedules
 {
@@ -15,23 +15,9 @@ namespace AutonomyApi.Schedules
             _dbContext = dbContext;
         }   
 
-        public List<SchedulePresentationView> Get(int userId, string? search, int? clientId)
+        public SearchResults<ScheduleSummaryView> Get(int userId, ScheduleSearchView search)
         {
-            var filters = new DynamicFilterPipeline<SchedulePresentationView>
-            {
-                new TextMatchFilter<SchedulePresentationView>(schedule => schedule.Name+schedule.Description, search),
-                new EqualsFilter<SchedulePresentationView, int?>(schedule => 
-                {
-                    if (schedule.Service == null)
-                    {
-                        return null;
-                    }
-
-                    return schedule.Service.Id;
-                }, clientId)
-            };
-
-            return new ScheduleRepository(_dbContext).FindAll(userId, filters);
+            return new ScheduleRepository(_dbContext).FindAll(userId, search);
         }
 
         public SchedulePresentationView Get(int userId, int id)

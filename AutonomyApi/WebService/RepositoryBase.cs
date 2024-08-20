@@ -2,6 +2,7 @@
 using AutonomyApi.WebService.Exceptions;
 using AutonomyApi.WebService.DynamicFilters;
 using AutonomyApi.Models.Entities;
+using System.Linq;
 
 namespace AutonomyApi.WebService
 {
@@ -77,14 +78,14 @@ namespace AutonomyApi.WebService
             return query;
         }
 
-        protected List<T> GetFiltered<T>(IQueryable<T> query, DynamicFilterPipeline<T>? filter)
+        protected SearchResults<TEntity> FromSearch(Search<TEntity> search, IQueryable<TEntity> query)
         {
-            if (filter == null)
-            {
-                return query.ToList();
-            }
+             return search.GetResults(Compose(query));
+        }
 
-            return filter.GetDelegate()(query).ToList();
+        protected SearchResults<TResult> FromSearch<TResult>(Search<TEntity> search, IQueryable<TEntity> query, Func<TEntity, TResult> selector)
+        {
+            return search.GetResults(Compose(query), selector);
         }
 
         protected TEntity FromQuery(IQueryable<TEntity> query, params object[] keyValues)
@@ -108,7 +109,5 @@ namespace AutonomyApi.WebService
 
             return result;
         }
-
-        
     }
 }

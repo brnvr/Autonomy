@@ -24,10 +24,13 @@ namespace AutonomyApi.Controllers
         /// <summary>
         /// List all services
         /// </summary>
+        /// <param name="page">Page</param>
+        /// <param name="pageLength">Page length</param>
+        /// <param name="order">Order</param>
         /// <param name="search">Name filter (optional)</param>
         /// <returns></returns>
         [HttpGet]
-        public IActionResult Get(string? search)
+        public IActionResult Get([FromQuery]ServiceSearchView search)
         {
             return _ws.Perform(() =>
             {

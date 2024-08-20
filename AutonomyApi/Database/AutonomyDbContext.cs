@@ -16,6 +16,8 @@ namespace AutonomyApi.Database
         public DbSet<Service> Services { get; set; }
         public DbSet<Currency> Currencies { get; set; }
         public DbSet<Schedule> Schedules { get; set; }
+        public DbSet<ServiceProvided> ServicesProvided { get; set; }
+        public DbSet<ServiceProvidedClient> ServiceProvidedClients { get; set; }
 
         public AutonomyDbContext(DbContextOptions<AutonomyDbContext> options) : base(options) { }
 
@@ -46,6 +48,8 @@ namespace AutonomyApi.Database
             OnServiceModelCreating(modelBuilder.Entity<Service>());
             OnCurrencyModelCreating(modelBuilder.Entity<Currency>());
             OnScheduleModelCreating(modelBuilder.Entity<Schedule>());
+            OnServiceProvidedModelCreating(modelBuilder.Entity<ServiceProvided>());
+            OnServiceProvidedClientModelCreating(modelBuilder.Entity<ServiceProvidedClient>());
 
             base.OnModelCreating(modelBuilder);
         }

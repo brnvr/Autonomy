@@ -21,17 +21,15 @@ namespace AutonomyApi.Repositories
             return FromQuery(query, id);
         }
 
-        public List<ClientSummaryView> FindAll(int userId, DynamicFilterPipeline<ClientSummaryView>? filter = null)
+        public SearchResults<ClientSummaryView> FindAll(int userId, ClientSearchView search)
         {
-            var query = from client in Entities
-                        where client.UserId == userId
-                        select new ClientSummaryView
-                        {
-                            Id = client.Id,
-                            Name = client.Name
-                        };
+            var query = Entities.Where(client => client.UserId == userId);
 
-            return GetFiltered(query, filter);
+            return FromSearch(search, query, client => new ClientSummaryView
+            {
+                Id = client.Id,
+                Name = client.Name
+            });
         }
 
         protected override IQueryable<Client> Compose(IQueryable<Client> query)

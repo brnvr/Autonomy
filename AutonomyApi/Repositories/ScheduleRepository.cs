@@ -31,6 +31,7 @@ namespace AutonomyApi.Repositories
                             Id = schedule.Id,
                             Name = schedule.Name,
                             Date = schedule.Date,
+                            CreationDate = schedule.CreationDate,
                             Description = schedule.Description,
                             Service = schedule.Service == null ? null : new ServiceSummaryView
                             {
@@ -48,30 +49,28 @@ namespace AutonomyApi.Repositories
             return FromQuery(query, id);
         }
 
-        public List<SchedulePresentationView> FindAll(int userId, DynamicFilterPipeline<SchedulePresentationView>? filter = null)
+        public SearchResults<ScheduleSummaryView> FindAll(int userId, ScheduleSearchView search)
         {
-            var query = from schedule in Entities
-                        where schedule.UserId == userId
-                        select new SchedulePresentationView
-                        {
-                            Id = schedule.Id,
-                            Name = schedule.Name,
-                            Date = schedule.Date,
-                            Description = schedule.Description,
-                            Service = schedule.Service == null ? null : new ServiceSummaryView
-                            {
-                                Id = schedule.Service.Id,
-                                Name = schedule.Service.Name,
-                                Description = schedule.Service.Description
-                            },
-                            Clients = schedule.Clients.Select(client => new ClientSummaryView
-                            {
-                                Id = client.Id,
-                                Name = client.Name
-                            }).ToList()
-                        };
+            var query = Entities.Where(item => item.UserId == userId);
 
-            return GetFiltered(query, filter);
+            return FromSearch(search, query, item => new ScheduleSummaryView
+            {
+                Id = item.Id,
+                Name = item.Name,
+                Date = item.Date,
+                Description = item.Description,
+                Service = item.Service == null ? null : new ServiceSummaryView
+                {
+                    Id = item.Service.Id,
+                    Name = item.Service.Name,
+                    Description = item.Service.Description
+                },
+                Clients = item.Clients.Select(client => new ClientSummaryView
+                {
+                    Id = client.Id,
+                    Name = client.Name
+                }).ToList()
+            });
         }
 
         protected override IQueryable<Schedule> Compose(IQueryable<Schedule> query)

@@ -32,17 +32,15 @@ namespace AutonomyApi.Repositories
             return FromQuery(query);
         }
 
-        public List<BudgetSummaryView> FindAll(int userId, bool? isTemplate, DynamicFilterPipeline<BudgetSummaryView>? filter = null)
+        public SearchResults<BudgetSummaryView> FindAll(int userId, bool? isTemplate, BudgetSearchView search)
         {
-            var query = from budget in Entities
-                        where budget.UserId == userId && (isTemplate == null || budget.IsTemplate == isTemplate)
-                        select new BudgetSummaryView
-                        {
-                            Id = budget.Id,
-                            Name = budget.Name
-                        };
+            var query = Entities.Where(budget => budget.UserId == userId && (isTemplate == null || budget.IsTemplate == isTemplate));
 
-            return GetFiltered(query, filter);
+            return FromSearch(search, query, budget => new BudgetSummaryView
+            {
+                Id = budget.Id,
+                Name = budget.Name
+            });
         }
 
         protected override IQueryable<Budget> Compose(IQueryable<Budget> query)

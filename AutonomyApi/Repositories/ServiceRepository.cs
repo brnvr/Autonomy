@@ -19,18 +19,16 @@ namespace AutonomyApi.Repositories
             return FromQuery(query, id);
         }
 
-        public List<ServiceSummaryView> FindAll(int userId, DynamicFilterPipeline<ServiceSummaryView>? filter = null)
+        public SearchResults<ServiceSummaryView> FindAll(int userId, ServiceSearchView search)
         {
-            var query = from service in Entities
-                        where service.UserId == userId
-                        select new ServiceSummaryView
-                        {
-                            Id = service.Id,
-                            Name = service.Name,
-                            Description = service.Description
-                        };
+            var query = Entities.Where(service => service.UserId == userId);
 
-            return GetFiltered(query, filter);
+            return FromSearch(search, query, service => new ServiceSummaryView
+            {
+                Id = service.Id,
+                Name = service.Name,
+                Description = service.Description
+            });
         }
     }
 }

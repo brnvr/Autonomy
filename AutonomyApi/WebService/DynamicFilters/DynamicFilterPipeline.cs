@@ -19,10 +19,7 @@ namespace AutonomyApi.WebService.DynamicFilters
 
         public DynamicFilterPipelineDelegate<T> GetDelegate()
         {
-            return e =>
-            {
-                return e.Where(entity => MatchAll(entity));
-            };
+            return e => e.Where(entity => MatchAll(entity));
         }
     }
 }

@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using AutonomyApi.Models.ViewModels.Client;
 using AutonomyApi.Enums;
 using AutonomyApi.Database;
+using AutonomyApi.Models.Entities;
 
 namespace AutonomyApi.Controllers
 {
@@ -26,7 +27,7 @@ namespace AutonomyApi.Controllers
         /// <param name="search">Name filter (optional)</param>
         /// <returns></returns>
         [HttpGet]
-        public IActionResult Get(string? search)
+        public IActionResult Get([FromQuery]ClientSearchView search)
         {
             return _ws.Perform(() =>
             {

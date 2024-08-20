@@ -3,6 +3,7 @@ using AutonomyApi.Schedules;
 using Microsoft.AspNetCore.Mvc;
 using AutonomyApi.Models.ViewModels.Schedule;
 using AutonomyApi.Database;
+using AutonomyApi.Models.Entities;
 
 namespace AutonomyApi.Controllers
 {
@@ -26,11 +27,11 @@ namespace AutonomyApi.Controllers
         /// <param name="clientId">Client id (optional)</param>
         /// <returns></returns>
         [HttpGet]
-        public IActionResult Get(string? search, int? clientId)
+        public IActionResult Get([FromQuery]ScheduleSearchView search)
         {
             return _ws.Perform(() =>
             {
-                return Ok(new ScheduleService(_dbContext).Get(1, search, clientId));
+                return Ok(new ScheduleService(_dbContext).Get(1, search));
             });
         }
 

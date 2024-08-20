@@ -1,12 +1,9 @@
 ﻿using AutonomyApi.Database;
 using AutonomyApi.Models.Entities;
-using AutonomyApi.Models.ViewModels.Budget;
 using AutonomyApi.Models.ViewModels.Service;
 using AutonomyApi.Repositories;
+using AutonomyApi.WebService;
 using AutonomyApi.WebService.DynamicFilters;
-using Microsoft.AspNetCore.Components.Routing;
-using static AutonomyApi.Constants;
-using System.Reflection.PortableExecutable;
 
 namespace AutonomyApi.Services
 {
@@ -19,14 +16,9 @@ namespace AutonomyApi.Services
             _dbContext = dbContext;
         }   
 
-        public List<ServiceSummaryView> Get(int userId, string? search)
+        public SearchResults<ServiceSummaryView> Get(int userId, ServiceSearchView search)
         {
-            var filters = new DynamicFilterPipeline<ServiceSummaryView>
-            {
-                new TextMatchFilter<ServiceSummaryView>(service => service.Name+service.Description, search)
-            };
-
-            return new ServiceRepository(_dbContext).FindAll(userId, filters);
+            return new ServiceRepository(_dbContext).FindAll(userId, search);
         }
 
         public Service Get(int userId, int id)

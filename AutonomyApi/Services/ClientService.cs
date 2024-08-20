@@ -3,6 +3,7 @@ using AutonomyApi.Enums;
 using AutonomyApi.Models.Entities;
 using AutonomyApi.Models.ViewModels.Client;
 using AutonomyApi.Repositories;
+using AutonomyApi.WebService;
 using AutonomyApi.WebService.DynamicFilters;
 using AutonomyApi.WebService.Exceptions;
 
@@ -17,14 +18,9 @@ namespace AutonomyApi.Services
             _dbContext = dbContext;
         }
 
-        public List<ClientSummaryView> Get(int userId, string? search)
+        public SearchResults<ClientSummaryView> Get(int userId, ClientSearchView search)
         {
-            var filters = new DynamicFilterPipeline<ClientSummaryView>
-            {
-                new TextMatchFilter<ClientSummaryView>(client => client.Name, search)
-            };
-
-            return new ClientRepository(_dbContext).FindAll(userId, filters);
+            return new ClientRepository(_dbContext).FindAll(userId, search);
         }
 
         public Client Get(int userId, int id)

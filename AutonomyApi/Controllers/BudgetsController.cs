@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 using AutonomyApi.Models.ViewModels.Budget;
 using Microsoft.AspNetCore.JsonPatch;
 using System.ComponentModel.DataAnnotations;
+using AutonomyApi.Models.Entities;
 
 namespace AutonomyApi.Controllers
 {
@@ -27,7 +28,7 @@ namespace AutonomyApi.Controllers
         /// <param name="search">Name filter (optional)</param>
         /// <returns></returns>
         [HttpGet]
-        public IActionResult Get(string? search)
+        public IActionResult Get([FromQuery] BudgetSearchView search)
         {
             return _ws.Perform(() =>
             {
