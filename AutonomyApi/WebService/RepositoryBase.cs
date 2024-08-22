@@ -10,42 +10,13 @@ namespace AutonomyApi.WebService
     {
         protected TDbContext DbContext { get; }
         protected DbSet<TEntity> Entities { get; }
+        public bool UseComposition { get; set; }
 
-        public RepositoryBase(TDbContext dbContext, Func<TDbContext, DbSet<TEntity>> entitiesFromContext)
+        public RepositoryBase(TDbContext dbContext, Func<TDbContext, DbSet<TEntity>> entitiesFromContext, bool useComposition)
         {
             Entities = entitiesFromContext(dbContext);
             DbContext = dbContext;
-        }
-
-        public virtual List<TEntity> FindAll(DynamicFilterPipelineDelegate<TEntity>? filter = null)
-        {
-            if (filter == null)
-            {
-                return Compose(Entities).ToList();
-            }
-
-            return filter(Compose(Entities)).ToList();
-        }
-
-        public virtual TEntity FindFirst(DynamicFilterPipelineDelegate<TEntity>? filter = null)
-        {
-            TEntity? result;
-
-            if (filter == null)
-            {
-                result = Compose(Entities).FirstOrDefault();
-            }
-            else
-            {
-                result = filter(Compose(Entities)).FirstOrDefault();
-            }
-
-            if (result == null)
-            {
-                throw new EntityNotFoundException(typeof(TEntity));
-            }
-
-            return result;
+            UseComposition = useComposition;
         }
 
         public virtual void Add(TEntity entity)
@@ -58,48 +29,22 @@ namespace AutonomyApi.WebService
             Entities.Remove(entity);
         }
 
-        public virtual bool Exists(params object[] keyValues)
+        protected SearchResults<T> Search<T>(Search<TEntity> search, IQueryable<TEntity> query, Func<TEntity, T> selector) where T : class
         {
-            return Entities.Find(keyValues) != null;
+            var composed = UseComposition ? Compose(query) : query; 
+
+            return search.GetResults(composed, selector);
         }
 
-        public virtual bool Exists(DynamicFilterPipelineDelegate<TEntity>? filter)
+        protected T FindFirst<T>(IQueryable<TEntity> query, Func<TEntity, T> selector, params object[] keyValues) where T : class
         {
-            if (filter == null)
-            {
-                return Entities.Any();
-            }
+            var composed = UseComposition ? Compose(query) : query;
 
-            return filter(Entities).Any();
-        }
-
-        protected virtual IQueryable<TEntity> Compose(IQueryable<TEntity> query)
-        {
-            return query;
-        }
-
-        protected SearchResults<TEntity> FromSearch(Search<TEntity> search, IQueryable<TEntity> query)
-        {
-             return search.GetResults(Compose(query));
-        }
-
-        protected SearchResults<TResult> FromSearch<TResult>(Search<TEntity> search, IQueryable<TEntity> query, Func<TEntity, TResult> selector)
-        {
-            return search.GetResults(Compose(query), selector);
-        }
-
-        protected TEntity FromQuery(IQueryable<TEntity> query, params object[] keyValues)
-        {
-            return FromQuery<TEntity>(Compose(query), keyValues);
-        }
-
-        protected T FromQuery<T>(IQueryable<T> query, params object[] keyValues)
-        {
-            var result = query.FirstOrDefault();
+            var result = composed.Select(selector).FirstOrDefault();
 
             if (result == null)
             {
-                if (keyValues.Count() > 0)
+                if (keyValues.Length > 0)
                 {
                     throw new EntityNotFoundException(typeof(TEntity), keyValues);
                 }
@@ -108,6 +53,11 @@ namespace AutonomyApi.WebService
             }
 
             return result;
+        }
+
+        protected virtual IQueryable<TEntity> Compose(IQueryable<TEntity> query)
+        {
+            return query;
         }
     }
 }

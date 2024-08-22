@@ -3,6 +3,7 @@ using AutonomyApi.Services;
 using Microsoft.AspNetCore.Mvc;
 using AutonomyApi.Database;
 using AutonomyApi.Models.Entities;
+using AutonomyApi.Models.ViewModels.ServiceProvided;
 
 namespace AutonomyApi.Controllers
 {
@@ -19,5 +20,18 @@ namespace AutonomyApi.Controllers
             _ws = new WebServiceManager(this);
         }
 
+        /// <summary>
+        /// Search services provided
+        /// </summary>
+        /// <param name="search"></param>
+        /// <returns></returns>
+        [HttpGet]
+        public IActionResult Get([FromQuery] ServiceProvidedSearchView search)
+        {
+            return _ws.Perform(() =>
+            {
+                return Ok(new ServiceProvidedService(_dbContext).Get(1, search));
+            });
+        }
     }
 }

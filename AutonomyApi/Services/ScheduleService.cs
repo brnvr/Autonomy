@@ -1,28 +1,61 @@
 ﻿using AutonomyApi.Database;
 using AutonomyApi.Models.Entities;
+using AutonomyApi.Models.ViewModels.Client;
 using AutonomyApi.Models.ViewModels.Schedule;
+using AutonomyApi.Models.ViewModels.Service;
 using AutonomyApi.Repositories;
-using AutonomyApi.WebService;
 
 namespace AutonomyApi.Schedules
 {
     public class ScheduleService
     {
-        AutonomyDbContext _dbContext;
+        readonly AutonomyDbContext _dbContext;
 
-        public ScheduleService(AutonomyDbContext dbContext)
-        {
-            _dbContext = dbContext;
-        }   
+        public ScheduleService(AutonomyDbContext dbContext) => _dbContext = dbContext;
 
-        public SearchResults<ScheduleSummaryView> Get(int userId, ScheduleSearchView search)
+        public dynamic Get(int userId, ScheduleSearchView search)
         {
-            return new ScheduleRepository(_dbContext).FindAll(userId, search);
+            return new ScheduleRepository(_dbContext).Search(userId, search, item => new
+            {
+                item.Id,
+                item.Name,
+                item.Date,
+                item.Description,
+                Service = item.Service == null ? null : new
+                {
+                    item.Service.Id,
+                    item.Service.Name,
+                    item.Service.Description
+                },
+                Clients = item.Clients.Select(client => new
+                {
+                    client.Id,
+                    client.Name
+                }).ToList()
+            });
         }
 
-        public SchedulePresentationView Get(int userId, int id)
+        public dynamic Get(int userId, int id)
         {
-            return new ScheduleRepository(_dbContext).FindDetails(userId, id);
+            return new ScheduleRepository(_dbContext).Find(userId, id, schedule => new
+            {
+                schedule.Id,
+                schedule.Name,
+                schedule.Date,
+                schedule.CreationDate,
+                schedule.Description,
+                Service = schedule.Service == null ? null : new
+                {
+                    schedule.Service.Id,
+                    schedule.Service.Name,
+                    schedule.Service.Description
+                },
+                Clients = schedule.Clients.Select(client => new
+                {
+                    client.Id,
+                    client.Name
+                }).ToList()
+            });
         }
 
         public int Create(int userId, ScheduleCreationView data)
@@ -34,7 +67,7 @@ namespace AutonomyApi.Schedules
                 Description = data.Description,
                 ServiceId = data.ServiceId,
                 Date = data.Date,
-                Clients = new List<Client>(),
+                Clients = [],
                 CreationDate = DateTime.UtcNow,
             };
 
@@ -49,8 +82,8 @@ namespace AutonomyApi.Schedules
         {
             using (var transaction = _dbContext.Database.BeginTransaction())
             {
-                var repo = new ScheduleRepository(_dbContext);
-                var schedule = repo.Find(userId, id);
+                var repo = new ScheduleRepository(_dbContext, false);
+                var schedule = repo.Find(userId, id, schedule => schedule);
 
                 schedule.Name = data.Name;
                 schedule.Description = data.Description;
@@ -64,10 +97,10 @@ namespace AutonomyApi.Schedules
 
         public void Remove(int userId, int id)
         {
-            using (var transaction = _dbContext.Database.BeginTransaction())
+            using var transaction = _dbContext.Database.BeginTransaction();
             {
-                var repo = new ScheduleRepository(_dbContext);
-                var schedule = repo.Find(userId, id);
+                var repo = new ScheduleRepository(_dbContext, false);
+                var schedule = repo.Find(userId, id, item => item);
 
                 repo.Remove(schedule);
 
@@ -79,35 +112,33 @@ namespace AutonomyApi.Schedules
         public void AddClient(int userId, int id, int clientId)
         {
             var scheduleRepo = new ScheduleRepository(_dbContext);
-            var clientRepo = new ClientRepository(_dbContext);
+            var clientRepo = new ClientRepository(_dbContext, false);
 
-            using (var transaction = _dbContext.Database.BeginTransaction())
-            {
-                var schedule = scheduleRepo.Find(userId, id);
-                var client = clientRepo.Find(userId, clientId);
+            using var transaction = _dbContext.Database.BeginTransaction();
 
-                schedule.Clients.Add(client);
+            var schedule = scheduleRepo.Find(userId, id, item => item);
+            var client = clientRepo.Find(userId, clientId, client => client);
 
-                _dbContext.SaveChanges();
-                transaction.Commit();
-            }
+            schedule.Clients.Add(client);
+
+            _dbContext.SaveChanges();
+            transaction.Commit();
         }
 
         public void RemoveClient(int userId, int id, int clientId)
         {
             var scheduleRepo = new ScheduleRepository(_dbContext);
-            var clientRepo = new ClientRepository(_dbContext);
+            var clientRepo = new ClientRepository(_dbContext, false);
 
-            using (var transaction = _dbContext.Database.BeginTransaction())
-            {
-                var schedule = scheduleRepo.Find(userId, id);
-                var client = clientRepo.Find(userId, clientId);
+            using var transaction = _dbContext.Database.BeginTransaction();
 
-                schedule.Clients.Remove(client);
+            var schedule = scheduleRepo.Find(userId, id, schedule => schedule);
+            var client = clientRepo.Find(userId, clientId, client => client);
 
-                _dbContext.SaveChanges();
-                transaction.Commit();
-            }
+            schedule.Clients.Remove(client);
+
+            _dbContext.SaveChanges();
+            transaction.Commit();
         }
     }
 }

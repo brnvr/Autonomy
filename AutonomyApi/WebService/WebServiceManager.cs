@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Data.Common;
+using System.Net;
 using System.Security.Authentication;
 
 namespace AutonomyApi.WebService
@@ -51,7 +52,7 @@ namespace AutonomyApi.WebService
             }
         }
 
-        public async Task<IActionResult> Perform(Func<Task<IActionResult>> callback)
+        public async Task<IActionResult> PerformAsync(Func<Task<IActionResult>> callback)
         {
             if (!Controller.ModelState.IsValid)
             {
@@ -68,7 +69,7 @@ namespace AutonomyApi.WebService
             }
         }
 
-        public async Task<IActionResult> Perform(Func<Task> callback)
+        public async Task<IActionResult> PerformAsync(Func<Task> callback)
         {
             if (!Controller.ModelState.IsValid)
             {
@@ -87,6 +88,18 @@ namespace AutonomyApi.WebService
             }
         }
 
+        protected dynamic GetError(HttpStatusCode status, params string[] errors)
+        {
+            return new
+            {
+                errors, 
+                status = (int)status,
+                type = "",
+                title = "One or more request errors occurred.",
+                traceId = Controller.HttpContext.TraceIdentifier,
+            };
+        }
+
         protected IActionResult HandleException(Exception ex)
         {
             if (ex is DbUpdateException dbEx)
@@ -97,31 +110,31 @@ namespace AutonomyApi.WebService
                 {
                     if (_dbEx.ErrorCode == -2147467259)
                     {
-                        return Controller.Conflict(_dbEx.Message);
+                        return Controller.Conflict(GetError(HttpStatusCode.Conflict, _dbEx.Message));
                     }
                 }
 
-                return Controller.UnprocessableEntity((dbEx.InnerException ?? dbEx).Message);
+                return Controller.UnprocessableEntity(GetError(HttpStatusCode.UnprocessableEntity, (dbEx.InnerException ?? dbEx).Message));
             }
             else if (ex is HttpRequestException httpEx)
             {
-                return Controller.StatusCode((int)(httpEx.StatusCode ?? System.Net.HttpStatusCode.BadRequest), httpEx.Message);
+                return Controller.StatusCode((int)(httpEx.StatusCode ?? HttpStatusCode.BadRequest), GetError(HttpStatusCode.BadRequest, httpEx.Message));
             }
             else if (ex is AuthenticationException authEx)
             {
-                return Controller.Unauthorized(authEx.Message);
+                return Controller.Unauthorized(GetError(HttpStatusCode.Unauthorized, authEx.Message));
             }
             else if (ex is EntityNotFoundException entryEx)
             {
-                return Controller.NotFound(entryEx.Message);
+                return Controller.NotFound(GetError(HttpStatusCode.NotFound, entryEx.Message));
             }
             else if (ex is DuplicateValueException dupEx)
             {
-                return Controller.Conflict(dupEx.Message);
+                return Controller.Conflict(GetError(HttpStatusCode.Conflict, dupEx.Message));
             }
             else
             {
-                return Controller.BadRequest(ex.Message);
+                return Controller.BadRequest(GetError(HttpStatusCode.BadRequest, ex.Message));
             }
         }
     }
@@ -175,7 +188,7 @@ namespace AutonomyApi.WebService
 
         }
 
-        public async Task<IActionResult> Perform(Func<TContext, Task<IActionResult>> callback)
+        public async Task<IActionResult> PerformAsync(Func<TContext, Task<IActionResult>> callback)
         {
             if (!Controller.ModelState.IsValid)
             {
@@ -194,7 +207,7 @@ namespace AutonomyApi.WebService
 
         }
 
-        public async Task<IActionResult> Perform(Func<TContext, Task> callback)
+        public async Task<IActionResult> PerformAsync(Func<TContext, Task> callback)
         {
             if (!Controller.ModelState.IsValid)
             {

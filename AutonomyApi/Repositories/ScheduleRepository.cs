@@ -11,66 +11,22 @@ namespace AutonomyApi.Repositories
 {
     public class ScheduleRepository : RepositoryBase<AutonomyDbContext, Schedule>
     {
-        public ScheduleRepository(AutonomyDbContext dbContext) : base(dbContext, ctx => ctx.Schedules) { }
+        public ScheduleRepository(AutonomyDbContext dbContext, bool useComposition=true) : base(dbContext, ctx => ctx.Schedules, useComposition) { }
 
-        public Schedule Find(int userId, int id)
+        public T Find<T>(int userId, int id, Func<Schedule, T> selector) where T : class
         {
             var query = from schedule in Entities
                         where schedule.UserId == userId && schedule.Id == id
                         select schedule;
 
-            return FromQuery(query, id);
+            return FindFirst(query, selector, id);
         }
 
-        public SchedulePresentationView FindDetails(int userId, int id)
-        {
-            var query = from schedule in Entities
-                        where schedule.UserId == userId && schedule.Id == id
-                        select new SchedulePresentationView
-                        {
-                            Id = schedule.Id,
-                            Name = schedule.Name,
-                            Date = schedule.Date,
-                            CreationDate = schedule.CreationDate,
-                            Description = schedule.Description,
-                            Service = schedule.Service == null ? null : new ServiceSummaryView
-                            {
-                                Id = schedule.Service.Id,
-                                Name = schedule.Service.Name,
-                                Description = schedule.Service.Description
-                            },
-                            Clients = schedule.Clients.Select(client => new ClientSummaryView
-                            {
-                                Id = client.Id,
-                                Name = client.Name
-                            }).ToList()
-                        };
-
-            return FromQuery(query, id);
-        }
-
-        public SearchResults<ScheduleSummaryView> FindAll(int userId, ScheduleSearchView search)
+        public SearchResults<T> Search<T>(int userId, ScheduleSearchView search, Func<Schedule, T> selector) where T : class
         {
             var query = Entities.Where(item => item.UserId == userId);
 
-            return FromSearch(search, query, item => new ScheduleSummaryView
-            {
-                Id = item.Id,
-                Name = item.Name,
-                Date = item.Date,
-                Description = item.Description,
-                Service = item.Service == null ? null : new ServiceSummaryView
-                {
-                    Id = item.Service.Id,
-                    Name = item.Service.Name,
-                    Description = item.Service.Description
-                },
-                Clients = item.Clients.Select(client => new ClientSummaryView
-                {
-                    Id = client.Id,
-                    Name = client.Name
-                }).ToList()
-            });
+            return Search(search, query, selector);
         }
 
         protected override IQueryable<Schedule> Compose(IQueryable<Schedule> query)

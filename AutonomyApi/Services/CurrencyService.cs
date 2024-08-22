@@ -1,4 +1,4 @@
-﻿using AutonomyApi.Database;
+﻿/*using AutonomyApi.Database;
 using AutonomyApi.Models.Entities;
 using AutonomyApi.Repositories;
 using AutonomyApi.WebService.DynamicFilters;
@@ -21,7 +21,7 @@ namespace AutonomyApi.Services
                 new SubstringFilter<Currency>(search, currency => [ currency.Code, currency.Name ])
             };
 
-            return new CurrencyRepository(_dbContext).FindAll(filters.GetDelegate());
+            return new CurrencyRepository(_dbContext).Search(filters.GetDelegate());
         }
 
         public Currency Get(int id)
@@ -30,3 +30,4 @@ namespace AutonomyApi.Services
         }
     }
 }
+*/

@@ -2,9 +2,8 @@
 using AutonomyApi.Services;
 using Microsoft.AspNetCore.Mvc;
 using AutonomyApi.Models.ViewModels.Service;
-using AutonomyApi.Enums;
 using AutonomyApi.Database;
-using AutonomyApi.Models.Entities;
+using System.ComponentModel.DataAnnotations;
 
 namespace AutonomyApi.Controllers
 {
@@ -22,15 +21,11 @@ namespace AutonomyApi.Controllers
         }
 
         /// <summary>
-        /// List all services
+        /// Search services
         /// </summary>
-        /// <param name="page">Page</param>
-        /// <param name="pageLength">Page length</param>
-        /// <param name="order">Order</param>
-        /// <param name="search">Name filter (optional)</param>
         /// <returns></returns>
         [HttpGet]
-        public IActionResult Get([FromQuery]ServiceSearchView search)
+        public IActionResult Get([FromQuery] ServiceSearchView search)
         {
             return _ws.Perform(() =>
             {
@@ -58,7 +53,7 @@ namespace AutonomyApi.Controllers
         /// <param name="data">Service data</param>
         /// <returns></returns>
         [HttpPost]
-        public IActionResult Post(ServiceCreationView data)
+        public IActionResult Post([Required] ServiceCreationView data)
         {
             return _ws.Perform(() =>
             {
@@ -75,7 +70,7 @@ namespace AutonomyApi.Controllers
         /// <param name="data">Service data</param>
         /// <returns></returns>
         [HttpPut("{id}")]
-        public IActionResult Put(int id, ServiceUpdateView data)
+        public IActionResult Put(int id, [Required] ServiceUpdateView data)
         {
             return _ws.Perform(() =>
             {
@@ -118,7 +113,7 @@ namespace AutonomyApi.Controllers
         /// <param name="data">Document</param>
         /// <returns></returns>
         [HttpPut("{id}/BudgetTemplate")]
-        public IActionResult PutBudgetTemplate(int id, BudgetTemplateUpdateView data)
+        public IActionResult PutBudgetTemplate(int id, [Required] BudgetTemplateUpdateView data)
         {
             return _ws.Perform(() =>
             {
@@ -137,6 +132,23 @@ namespace AutonomyApi.Controllers
             return _ws.Perform(() =>
             {
                 new ServiceService(_dbContext).RemoveBudgetTemplate(1, id);
+            });
+        }
+
+        /// <summary>
+        /// Provide a service to a client or a list of clients
+        /// </summary>
+        /// <param name="id">Service id</param>
+        /// <param name="data">Service provided data</param>
+        /// <returns></returns>
+        [HttpPost("{id}/Provide")]
+        public IActionResult Provide(int id, [Required] ServiceProvideView data)
+        {
+            return _ws.Perform(() =>
+            {
+                var serviceProvidedId = new ServiceService(_dbContext).Provide(1, id, data);
+
+                return CreatedAtAction("Get", "ServicesProvided", new { id = serviceProvidedId }, new { serviceProvidedId });
             });
         }
     }

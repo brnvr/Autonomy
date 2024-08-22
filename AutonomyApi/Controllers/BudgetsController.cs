@@ -23,9 +23,8 @@ namespace AutonomyApi.Controllers
         }
 
         /// <summary>
-        /// List all budgets
+        /// Search budgets
         /// </summary>
-        /// <param name="search">Name filter (optional)</param>
         /// <returns></returns>
         [HttpGet]
         public IActionResult Get([FromQuery] BudgetSearchView search)

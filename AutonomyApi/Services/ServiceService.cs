@@ -2,8 +2,6 @@
 using AutonomyApi.Models.Entities;
 using AutonomyApi.Models.ViewModels.Service;
 using AutonomyApi.Repositories;
-using AutonomyApi.WebService;
-using AutonomyApi.WebService.DynamicFilters;
 
 namespace AutonomyApi.Services
 {
@@ -16,14 +14,18 @@ namespace AutonomyApi.Services
             _dbContext = dbContext;
         }   
 
-        public SearchResults<ServiceSummaryView> Get(int userId, ServiceSearchView search)
+        public dynamic Get(int userId, ServiceSearchView search)
         {
-            return new ServiceRepository(_dbContext).FindAll(userId, search);
+            return new ServiceRepository(_dbContext).Search(userId, search, service => new {
+                service.Id,
+                service.Name,
+                service.Description
+            });
         }
 
-        public Service Get(int userId, int id)
+        public dynamic Get(int userId, int id)
         {
-            return new ServiceRepository(_dbContext).Find(userId, id);
+            return new ServiceRepository(_dbContext).Find(userId, id, service => service);
         }
 
         public int Create(int userId, ServiceCreationView data)
@@ -46,8 +48,8 @@ namespace AutonomyApi.Services
         {
             using (var transaction = _dbContext.Database.BeginTransaction())
             {
-                var repo = new ServiceRepository(_dbContext);
-                var service = repo.Find(userId, id);
+                var repo = new ServiceRepository(_dbContext, false);
+                var service = repo.Find(userId, id, service => service);
 
                 service.Name = data.Name;
                 service.Description = data.Description;
@@ -61,8 +63,8 @@ namespace AutonomyApi.Services
         {
             using (var transaction = _dbContext.Database.BeginTransaction())
             {
-                var repo = new ServiceRepository(_dbContext);
-                var service = repo.Find(userId, id);
+                var repo = new ServiceRepository(_dbContext, false);
+                var service = repo.Find(userId, id, service => service);
 
                 repo.Remove(service);
 
@@ -71,18 +73,18 @@ namespace AutonomyApi.Services
             }
         }
 
-        public Budget GetBudgetTemplate(int userId, int id)
+        public dynamic GetBudgetTemplate(int userId, int id)
         {
-            return new BudgetRepository(_dbContext).FindByServiceId(userId, id);
+            return new BudgetRepository(_dbContext).FindByServiceId(userId, id, budget => budget);
         }
 
         public void UpdateBudgetTemplate(int userId, int id, BudgetTemplateUpdateView data)
         {
             using (var transaction = _dbContext.Database.BeginTransaction())
             {
-                var serviceRepo = new ServiceRepository(_dbContext);
+                var serviceRepo = new ServiceRepository(_dbContext, false);
                 var budgetRepo = new BudgetRepository(_dbContext);
-                var service = serviceRepo.Find(userId, id);
+                var service = serviceRepo.Find(userId, id, service => service);
 
                 if (service.BudgetTemplateId == null)
                 {
@@ -105,7 +107,7 @@ namespace AutonomyApi.Services
                 }
                 else
                 {
-                    var budget = budgetRepo.Find(userId, (int)service.BudgetTemplateId, null);
+                    var budget = budgetRepo.Find(userId, (int)service.BudgetTemplateId, true, budget => budget);
 
                     budget.Name = data.Name;
                     budget.Header = data.Header;
@@ -122,13 +124,13 @@ namespace AutonomyApi.Services
         {
             using (var transaction = _dbContext.Database.BeginTransaction())
             {
-                var serviceRepo = new ServiceRepository(_dbContext);
-                var service = serviceRepo.Find(userId, id);
+                var serviceRepo = new ServiceRepository(_dbContext, false);
+                var service = serviceRepo.Find(userId, id, service => service);
 
                 if (service.BudgetTemplateId != null)
                 {
-                    var budgetRepo = new BudgetRepository(_dbContext);
-                    var budget = budgetRepo.Find(userId, (int)service.BudgetTemplateId, null);
+                    var budgetRepo = new BudgetRepository(_dbContext, false);
+                    var budget = budgetRepo.Find(userId, (int)service.BudgetTemplateId, null, budget => budget);
 
                     budgetRepo.Remove(budget);
                     service.BudgetTemplateId = null; 
@@ -136,6 +138,54 @@ namespace AutonomyApi.Services
 
                 _dbContext.SaveChanges();
                 transaction.Commit();
+            }
+        }
+
+        public int Provide(int userId, int id, ServiceProvideView data)
+        {
+            var clientRepo = new ClientRepository(_dbContext);
+
+            using (var transaction = _dbContext.Database.BeginTransaction())
+            {
+                var service = new ServiceRepository(_dbContext).Find(userId, id, service => new
+                {
+                    service.Id, service.Name
+                });
+
+                var serviceProvided = new ServiceProvided
+                {
+                    ServiceId = service.Id,
+                    ServiceName = service.Name,
+                    UserId = userId,
+                    Date = data.Date,
+                    CreationDate = DateTime.UtcNow,
+                    Clients = data.ClientIds.Select(clientId =>
+                    {
+                        var client = clientRepo.Find(userId, clientId, client => new
+                        {
+                            client.Id,
+                            client.Name,
+                            client.Documents
+                        });
+
+                        var doc = client.Documents.FirstOrDefault();
+
+                        return new ServiceProvidedClient
+                        {
+                            ClientId = client.Id,
+                            ClientName = client.Name,
+                            ClientDocument = doc is null ? null : doc.Value,
+                            ClientDocumentType = doc is null ? null : doc.Type
+                        };
+                    }).ToList()
+                };
+                
+                new ServiceProvidedRepository(_dbContext).Add(serviceProvided);
+
+                _dbContext.SaveChanges();
+                transaction.Commit();
+
+                return serviceProvided.Id;
             }
         }
     }

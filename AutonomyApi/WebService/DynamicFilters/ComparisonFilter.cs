@@ -2,28 +2,28 @@
 
 namespace AutonomyApi.WebService.DynamicFilters
 {
-    public class ComparisonFilter<T, TProperty> : IDynamicFilter<T>
+    public class ExpFilter<T, TProperty> : IDynamicFilter<T>
     {
         public TProperty Value { get; }
         public Func<T, IEnumerable<TProperty>> GetValue { get; }
         public Func<TProperty, TProperty, bool> Compare { get; }
         public bool AllowsNull { get; set; } = true;
 
-        public ComparisonFilter(TProperty value, Func<TProperty, TProperty, bool> compare, Func<T, IEnumerable<TProperty>> getValue)
+        public ExpFilter(TProperty value, Func<TProperty, TProperty, bool> compare, Func<T, IEnumerable<TProperty>> getValue)
         {
             GetValue = getValue;
             Value = value;
             Compare = compare;
         }
 
-        public static ComparisonFilter<T, TProperty> Equals(TProperty value, Func<T, IEnumerable<TProperty>> getValue)
+        public static ExpFilter<T, TProperty> Equals(TProperty value, Func<T, IEnumerable<TProperty>> getValue)
         {
-            return new ComparisonFilter<T, TProperty>(value, (a, b) => a is null || a.Equals(b), getValue);
+            return new ExpFilter<T, TProperty>(value, (a, b) => a is null || a.Equals(b), getValue);
         }
 
-        public static ComparisonFilter<T, TProperty> GreaterThan(TProperty value, Func<T, IEnumerable<TProperty>> getValue)
+        public static ExpFilter<T, TProperty> GreaterThan(TProperty value, Func<T, IEnumerable<TProperty>> getValue)
         {
-            return new ComparisonFilter<T, TProperty>(value, (a, b) =>
+            return new ExpFilter<T, TProperty>(value, (a, b) =>
             {
                 var compA = a as IComparable;
 
@@ -36,9 +36,9 @@ namespace AutonomyApi.WebService.DynamicFilters
             }, getValue);
         }
 
-        public static ComparisonFilter<T, TProperty> GreaterThanOrEqualTo(TProperty value, Func<T, IEnumerable<TProperty>> getValue)
+        public static ExpFilter<T, TProperty> GreaterThanOrEqualTo(TProperty value, Func<T, IEnumerable<TProperty>> getValue)
         {
-            return new ComparisonFilter<T, TProperty>(value, (a, b) =>
+            return new ExpFilter<T, TProperty>(value, (a, b) =>
             {
                 var compA = a as IComparable;
 
@@ -51,9 +51,9 @@ namespace AutonomyApi.WebService.DynamicFilters
             }, getValue);
         }
 
-        public static ComparisonFilter<T, TProperty> LessThan(TProperty value, Func<T, IEnumerable<TProperty>> getValue)
+        public static ExpFilter<T, TProperty> LessThan(TProperty value, Func<T, IEnumerable<TProperty>> getValue)
         {
-            return new ComparisonFilter<T, TProperty>(value, (a, b) =>
+            return new ExpFilter<T, TProperty>(value, (a, b) =>
             {
                 var compA = a as IComparable;
 
@@ -66,9 +66,9 @@ namespace AutonomyApi.WebService.DynamicFilters
             }, getValue);
         }
 
-        public static ComparisonFilter<T, TProperty> LessThanOrEqualTo(TProperty value, Func<T, IEnumerable<TProperty>> getValue)
+        public static ExpFilter<T, TProperty> LessThanOrEqualTo(TProperty value, Func<T, IEnumerable<TProperty>> getValue)
         {
-            return new ComparisonFilter<T, TProperty>(value, (a, b) =>
+            return new ExpFilter<T, TProperty>(value, (a, b) =>
             {
                 var compA = a as IComparable;
 

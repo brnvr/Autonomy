@@ -1,35 +1,28 @@
 ﻿using AutonomyApi.Database;
 using AutonomyApi.Models.Entities;
-using AutonomyApi.Models.ViewModels.Client;
 using AutonomyApi.WebService;
-using AutonomyApi.WebService.DynamicFilters;
-using AutonomyApi.WebService.Exceptions;
 using Microsoft.EntityFrameworkCore;
 
 namespace AutonomyApi.Repositories
 {
     public class ClientRepository : RepositoryBase<AutonomyDbContext, Client>
     {
-        public ClientRepository(AutonomyDbContext dbContext) : base(dbContext, ctx => ctx.Clients) { }
+        public ClientRepository(AutonomyDbContext dbContext, bool useComposition=true) : base(dbContext, ctx => ctx.Clients, useComposition) { }
 
-        public Client Find(int userId, int id)
+        public T Find<T>(int userId, int id, Func<Client, T> selector) where T : class
         {
             var query = from client in Entities
                         where client.UserId == userId && client.Id == id
                         select client;
 
-            return FromQuery(query, id);
+            return FindFirst(query, selector, id);
         }
 
-        public SearchResults<ClientSummaryView> FindAll(int userId, ClientSearchView search)
+        public SearchResults<T> Search<T>(int userId, Search<Client> search, Func<Client, T> selector) where T : class
         {
             var query = Entities.Where(client => client.UserId == userId);
 
-            return FromSearch(search, query, client => new ClientSummaryView
-            {
-                Id = client.Id,
-                Name = client.Name
-            });
+            return Search(search, query, selector);
         }
 
         protected override IQueryable<Client> Compose(IQueryable<Client> query)

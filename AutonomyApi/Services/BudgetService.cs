@@ -2,8 +2,6 @@
 using AutonomyApi.Models.Entities;
 using AutonomyApi.Models.ViewModels.Budget;
 using AutonomyApi.Repositories;
-using AutonomyApi.WebService;
-using AutonomyApi.WebService.DynamicFilters;
 
 namespace AutonomyApi.Services
 {
@@ -16,31 +14,33 @@ namespace AutonomyApi.Services
             _dbContext = dbContext;
         }
 
-        public SearchResults<BudgetSummaryView> Get(int userId, BudgetSearchView search)
+        public dynamic Get(int userId, BudgetSearchView search)
         {
-            return new BudgetRepository(_dbContext).FindAll(userId, false, search);
+            return new BudgetRepository(_dbContext).Search(userId, false, search, budget => new
+            {
+                budget.Id,
+                budget.Name
+            });
         }
 
-        public BudgetPresentationView Get(int userId, int id)
+        public dynamic Get(int userId, int id)
         {
-            var budget = new BudgetRepository(_dbContext).Find(userId, id, false);
-
-            return new BudgetPresentationView
+            return new BudgetRepository(_dbContext).Find(userId, id, false, budget => new
             {
-                Id = budget.Id,
-                Name = budget.Name,
-                Header = budget.Header,
-                Footer = budget.Footer,
-                Items = budget.Items.Select(item => new BudgetItemPresentationView
+                budget.Id,
+                budget.Name,
+                budget.Header,
+                budget.Footer,
+                Items = budget.Items.Select(item => new
                 {
-                    Name = item.Name,
-                    Quantity = item.Quantity,
-                    UnitPrice = item.UnitPrice,
-                    Currency = item.Currency,
-                    Duration = item.Duration,
-                    DurationTimeUnit = item.DurationTimeUnit
+                    item.Name,
+                    item.Quantity,
+                    item.UnitPrice,
+                    item.Currency,
+                    item.Duration,
+                    item.DurationTimeUnit
                 }).ToList()
-            };
+            });
         }
 
         public int Create(int userId, BudgetCreationView data)
@@ -67,7 +67,10 @@ namespace AutonomyApi.Services
 
             using (var transaction = _dbContext.Database.BeginTransaction())
             {
-                var budget = repo.Find(userId, id, null);
+                var budget = repo.Find(userId, id, null, budget => new
+                {
+                    budget.Header, budget.Footer, budget.Items
+                });
 
                 var newBudget = new Budget
                 {
@@ -102,7 +105,7 @@ namespace AutonomyApi.Services
         {
             using (var transaction = _dbContext.Database.BeginTransaction())
             {
-                var budget = new BudgetRepository(_dbContext).Find(userId, id, false);
+                var budget = new BudgetRepository(_dbContext).Find(userId, id, false, budget => budget);
 
                 budget.Name = data.Name;
                 budget.Header = data.Header;
@@ -118,7 +121,7 @@ namespace AutonomyApi.Services
             using (var transaction = _dbContext.Database.BeginTransaction())
             {
                 var repo = new BudgetRepository(_dbContext);
-                var budget = repo.Find(userId, id, false);
+                var budget = repo.Find(userId, id, false, budget => budget);
 
                 repo.Remove(budget);
 
@@ -132,7 +135,7 @@ namespace AutonomyApi.Services
             using (var transaction = _dbContext.Database.BeginTransaction())
             {
                 var repo = new BudgetRepository(_dbContext);
-                var budget = repo.Find(userId, id, false);
+                var budget = repo.Find(userId, id, false, budget => budget);
 
                 budget.Items = data.ToBudgetItemList();
                 

@@ -1,10 +1,8 @@
 ﻿using AutonomyApi.Database;
-using AutonomyApi.Enums;
 using AutonomyApi.Models.Entities;
+using AutonomyApi.Models.ViewModels.ServiceProvided;
 using AutonomyApi.Repositories;
 using AutonomyApi.WebService;
-using AutonomyApi.WebService.DynamicFilters;
-using AutonomyApi.WebService.Exceptions;
 
 namespace AutonomyApi.Services
 {
@@ -17,9 +15,9 @@ namespace AutonomyApi.Services
             _dbContext = dbContext;
         }
 
-        /*public List<ServiceProvided> Get(int userId, int page, int pageLength, Orderer<ServiceProvided>? orderer, string? searchService, string? searchClient, DateTime? startDate, DateTime? endDate, DynamicFilterPipeline<ServiceProvided>? filters)
+        public dynamic Get(int userId, ServiceProvidedSearchView search)
         {
-            return new ServiceProvidedRepository(_dbContext).FindAll(userId, page, pageLength, orderer, searchService, searchClient, startDate, endDate, filters);
-        }*/
+            return new ServiceProvidedRepository(_dbContext).Search(userId, search, service => service);
+        }
     }
 }

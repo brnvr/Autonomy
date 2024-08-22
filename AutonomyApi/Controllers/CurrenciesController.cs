@@ -1,4 +1,4 @@
-﻿using AutonomyApi.WebService;
+﻿/*using AutonomyApi.WebService;
 using AutonomyApi.Services;
 using Microsoft.AspNetCore.Mvc;
 using AutonomyApi.Models.ViewModels.Client;
@@ -49,4 +49,4 @@ namespace AutonomyApi.Controllers
         }
 
     }
-}
+}*/

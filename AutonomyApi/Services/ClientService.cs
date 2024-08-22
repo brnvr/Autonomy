@@ -1,31 +1,28 @@
 ﻿using AutonomyApi.Database;
-using AutonomyApi.Enums;
 using AutonomyApi.Models.Entities;
 using AutonomyApi.Models.ViewModels.Client;
 using AutonomyApi.Repositories;
-using AutonomyApi.WebService;
-using AutonomyApi.WebService.DynamicFilters;
-using AutonomyApi.WebService.Exceptions;
 
 namespace AutonomyApi.Services
 {
     public class ClientService
     {
-        AutonomyDbContext _dbContext;
+        readonly AutonomyDbContext _dbContext;
 
-        public ClientService(AutonomyDbContext dbContext)
+        public ClientService(AutonomyDbContext dbContext) => _dbContext = dbContext;
+
+        public dynamic Get(int userId, ClientSearchView search)
         {
-            _dbContext = dbContext;
+            return new ClientRepository(_dbContext).Search(userId, search, client => new
+            {
+                client.Id,
+                client.Name
+            });
         }
 
-        public SearchResults<ClientSummaryView> Get(int userId, ClientSearchView search)
+        public dynamic Get(int userId, int id)
         {
-            return new ClientRepository(_dbContext).FindAll(userId, search);
-        }
-
-        public Client Get(int userId, int id)
-        {
-            return new ClientRepository(_dbContext).Find(userId, id);
+            return new ClientRepository(_dbContext).Find(userId, id, client => client);
         }
 
         public int Create(int userId, ClientCreationView data)
@@ -34,7 +31,7 @@ namespace AutonomyApi.Services
             {
                 UserId = userId,
                 Name = data.Name,
-                Documents = new List<ClientDocument>(),
+                Documents = [],
                 CreationDate = DateTime.UtcNow
             };
 
@@ -48,7 +45,7 @@ namespace AutonomyApi.Services
         {
             using (var transaction = _dbContext.Database.BeginTransaction())
             {
-                var client = new ClientRepository(_dbContext).Find(userId, id);
+                var client = new ClientRepository(_dbContext, false).Find(userId, id, client => client);
                 client.Name = data.Name;
 
                 _dbContext.SaveChanges();
@@ -58,11 +55,11 @@ namespace AutonomyApi.Services
 
         public void Remove(int userId, int id)
         {
-            var repo = new ClientRepository(_dbContext);
+            var repo = new ClientRepository(_dbContext, false);
 
             using (var transaction = _dbContext.Database.BeginTransaction())
             {
-                var client = repo.Find(userId, id);
+                var client = repo.Find(userId, id, client => client);
 
                 repo.Remove(client);
 
@@ -77,7 +74,7 @@ namespace AutonomyApi.Services
 
             using (var transaction = _dbContext.Database.BeginTransaction())
             {
-                var client = repo.Find(userId, clientId);
+                var client = repo.Find(userId, clientId, client => client);
 
                 var document = client.Documents.Find(document => document.Type == data.Type);
 

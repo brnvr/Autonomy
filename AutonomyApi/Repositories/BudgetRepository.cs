@@ -2,26 +2,24 @@
 using AutonomyApi.Models.Entities;
 using AutonomyApi.Models.ViewModels.Budget;
 using AutonomyApi.WebService;
-using AutonomyApi.WebService.DynamicFilters;
-using AutonomyApi.WebService.Exceptions;
 using Microsoft.EntityFrameworkCore;
 
 namespace AutonomyApi.Repositories
 {
     public class BudgetRepository : RepositoryBase<AutonomyDbContext, Budget>
     {
-        public BudgetRepository(AutonomyDbContext dbContext) : base(dbContext, ctx => ctx.Budgets) { }
+        public BudgetRepository(AutonomyDbContext dbContext, bool useComposition=true) : base(dbContext, ctx => ctx.Budgets, useComposition) { }
 
-        public Budget Find(int userId, int id, bool? isTemplate)
+        public T Find<T>(int userId, int id, bool? isTemplate, Func<Budget, T> selector) where T : class
         {
             var query = from budget in Entities
                         where budget.UserId == userId && budget.Id == id && (isTemplate == null || budget.IsTemplate == isTemplate)
                         select budget;
 
-            return FromQuery(query);
+            return FindFirst(query, selector, id);
         }
 
-        public Budget FindByServiceId(int userId, int serviceId)
+        public T FindByServiceId<T>(int userId, int serviceId, Func<Budget, T> selector) where T : class
         {
             var query = from budget in Entities
                         join service in DbContext.Services
@@ -29,18 +27,14 @@ namespace AutonomyApi.Repositories
                         where budget.UserId == userId
                         select budget;
 
-            return FromQuery(query);
+            return FindFirst(query, selector);
         }
 
-        public SearchResults<BudgetSummaryView> FindAll(int userId, bool? isTemplate, BudgetSearchView search)
+        public SearchResults<T> Search<T>(int userId, bool? isTemplate, Search<Budget> search, Func<Budget, T> selector) where T : class
         {
             var query = Entities.Where(budget => budget.UserId == userId && (isTemplate == null || budget.IsTemplate == isTemplate));
 
-            return FromSearch(search, query, budget => new BudgetSummaryView
-            {
-                Id = budget.Id,
-                Name = budget.Name
-            });
+            return Search(search, query, selector);
         }
 
         protected override IQueryable<Budget> Compose(IQueryable<Budget> query)

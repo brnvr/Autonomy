@@ -2,33 +2,27 @@
 using AutonomyApi.Models.Entities;
 using AutonomyApi.Models.ViewModels.Service;
 using AutonomyApi.WebService;
-using AutonomyApi.WebService.DynamicFilters;
 
 namespace AutonomyApi.Repositories
 {
     public class ServiceRepository : RepositoryBase<AutonomyDbContext, Service>
     {
-        public ServiceRepository(AutonomyDbContext dbContext) : base(dbContext, ctx => ctx.Services) { }
+        public ServiceRepository(AutonomyDbContext dbContext, bool useComposition=true) : base(dbContext, ctx => ctx.Services, useComposition) { }
 
-        public Service Find(int userId, int id)
+        public T Find<T>(int userId, int id, Func<Service, T> selector) where T : class
         {
             var query = from service in Entities
                         where service.UserId == userId && service.Id == id
                         select service;
 
-            return FromQuery(query, id);
+            return FindFirst(query, selector, id);
         }
 
-        public SearchResults<ServiceSummaryView> FindAll(int userId, ServiceSearchView search)
+        public SearchResults<T> Search<T>(int userId, ServiceSearchView search, Func<Service, T> selector) where T : class
         {
             var query = Entities.Where(service => service.UserId == userId);
 
-            return FromSearch(search, query, service => new ServiceSummaryView
-            {
-                Id = service.Id,
-                Name = service.Name,
-                Description = service.Description
-            });
+            return Search(search, query, selector);
         }
     }
 }
