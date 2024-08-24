@@ -6,6 +6,6 @@ namespace AutonomyApi.Repositories
 {
     public class UserRepository : RepositoryBase<AutonomyDbContext, User>
     {
-        public UserRepository(AutonomyDbContext dbContext, bool useComposition=true) : base(dbContext, ctx => ctx.Users, useComposition) { }
+        public UserRepository(AutonomyDbContext dbContext) : base(dbContext, ctx => ctx.Users) { }
     }
 }

@@ -15,8 +15,7 @@ namespace AutonomyApi.Database
                 .Property(budget => budget.Name)
                 .HasMaxLength(Constants.Name.MaxLength);
             builder
-                .HasIndex(budget => new { budget.UserId, budget.IsTemplate, budget.Name })
-                .IsUnique();
+                .HasIndex(budget => new { budget.UserId, budget.IsTemplate, budget.Name });
             builder
                 .Property(budget => budget.Header)
                 .HasMaxLength(Constants.Description.MaxLength);

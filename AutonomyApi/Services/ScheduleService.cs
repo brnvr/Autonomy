@@ -82,7 +82,7 @@ namespace AutonomyApi.Schedules
         {
             using (var transaction = _dbContext.Database.BeginTransaction())
             {
-                var repo = new ScheduleRepository(_dbContext, false);
+                var repo = new ScheduleRepository(_dbContext);
                 var schedule = repo.Find(userId, id, schedule => schedule);
 
                 schedule.Name = data.Name;
@@ -99,7 +99,7 @@ namespace AutonomyApi.Schedules
         {
             using var transaction = _dbContext.Database.BeginTransaction();
             {
-                var repo = new ScheduleRepository(_dbContext, false);
+                var repo = new ScheduleRepository(_dbContext);
                 var schedule = repo.Find(userId, id, item => item);
 
                 repo.Remove(schedule);
@@ -112,7 +112,7 @@ namespace AutonomyApi.Schedules
         public void AddClient(int userId, int id, int clientId)
         {
             var scheduleRepo = new ScheduleRepository(_dbContext);
-            var clientRepo = new ClientRepository(_dbContext, false);
+            var clientRepo = new ClientRepository(_dbContext);
 
             using var transaction = _dbContext.Database.BeginTransaction();
 
@@ -128,7 +128,7 @@ namespace AutonomyApi.Schedules
         public void RemoveClient(int userId, int id, int clientId)
         {
             var scheduleRepo = new ScheduleRepository(_dbContext);
-            var clientRepo = new ClientRepository(_dbContext, false);
+            var clientRepo = new ClientRepository(_dbContext);
 
             using var transaction = _dbContext.Database.BeginTransaction();
 

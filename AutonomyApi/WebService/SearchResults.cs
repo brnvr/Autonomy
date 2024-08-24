@@ -7,12 +7,12 @@ namespace AutonomyApi.WebService
     public class SearchResults<T>
     {
         public int TotalResults { get; }
-        public IEnumerable<T> ResultsFiltered { get; }
+        public IEnumerable<T> Selected { get; }
 
-        public SearchResults(IEnumerable<T> resultsFiltered, int totalResults)
+        public SearchResults(IEnumerable<T> selected, int totalResults)
         {
             TotalResults = totalResults;
-            ResultsFiltered = resultsFiltered;
+            Selected = selected;
         }
     }
 }

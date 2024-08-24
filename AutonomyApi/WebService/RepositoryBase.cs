@@ -10,13 +10,12 @@ namespace AutonomyApi.WebService
     {
         protected TDbContext DbContext { get; }
         protected DbSet<TEntity> Entities { get; }
-        public bool UseComposition { get; set; }
+        
 
-        public RepositoryBase(TDbContext dbContext, Func<TDbContext, DbSet<TEntity>> entitiesFromContext, bool useComposition)
+        public RepositoryBase(TDbContext dbContext, Func<TDbContext, DbSet<TEntity>> entitiesFromContext)
         {
             Entities = entitiesFromContext(dbContext);
             DbContext = dbContext;
-            UseComposition = useComposition;
         }
 
         public virtual void Add(TEntity entity)
@@ -31,14 +30,14 @@ namespace AutonomyApi.WebService
 
         protected SearchResults<T> Search<T>(Search<TEntity> search, IQueryable<TEntity> query, Func<TEntity, T> selector) where T : class
         {
-            var composed = UseComposition ? Compose(query) : query; 
+            var composed = Compose(query);
 
             return search.GetResults(composed, selector);
         }
 
         protected T FindFirst<T>(IQueryable<TEntity> query, Func<TEntity, T> selector, params object[] keyValues) where T : class
         {
-            var composed = UseComposition ? Compose(query) : query;
+            var composed = Compose(query);
 
             var result = composed.Select(selector).FirstOrDefault();
 

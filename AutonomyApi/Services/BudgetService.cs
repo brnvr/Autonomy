@@ -19,7 +19,8 @@ namespace AutonomyApi.Services
             return new BudgetRepository(_dbContext).Search(userId, false, search, budget => new
             {
                 budget.Id,
-                budget.Name
+                budget. Name,
+                Total = budget.GetTotal()
             });
         }
 
@@ -38,8 +39,10 @@ namespace AutonomyApi.Services
                     item.UnitPrice,
                     item.Currency,
                     item.Duration,
-                    item.DurationTimeUnit
-                }).ToList()
+                    item.DurationTimeUnit,
+                    Total = item.GetTotal()
+                }).ToList(),
+                Total = budget.GetTotal()
             });
         }
 
@@ -67,30 +70,9 @@ namespace AutonomyApi.Services
 
             using (var transaction = _dbContext.Database.BeginTransaction())
             {
-                var budget = repo.Find(userId, id, null, budget => new
-                {
-                    budget.Header, budget.Footer, budget.Items
-                });
+                var budget = repo.Find(userId, id, null, budget => budget);
 
-                var newBudget = new Budget
-                {
-                    Name = name,
-                    Header = budget.Header,
-                    Footer = budget.Footer,
-                    IsTemplate = false,
-                    UserId = userId,
-                    Items = budget.Items.Select(item => new BudgetItem
-                    {
-                        Name = item.Name,
-                        Position = item.Position,
-                        Quantity = item.Quantity,
-                        CurrencyId = item.CurrencyId,
-                        UnitPrice = item.UnitPrice,
-                        Duration = item.Duration,
-                        DurationTimeUnit = item.DurationTimeUnit
-                    }).ToList(),
-                    CreationDate = DateTime.UtcNow
-                };
+                var newBudget = budget.Copy();
 
                 repo.Add(newBudget);
 

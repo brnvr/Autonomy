@@ -12,10 +12,11 @@ namespace AutonomyApi.WebService.ValidationAttributes
             {
                 return new ValidationResult($"The field {validationContext.DisplayName} must be a valid DateTime.");
             }
+            DateTime lol;
 
             if (date < DateTime.UtcNow)
             {
-                return new ValidationResult($"The field {validationContext.DisplayName} must be a DateTime greater than current date (real: {date}).");
+                return new ValidationResult($"The field {validationContext.DisplayName} must be a DateTime greater than current date (real: {((DateTime)date).ToUniversalTime()}).");
             }
 
             return ValidationResult.Success;

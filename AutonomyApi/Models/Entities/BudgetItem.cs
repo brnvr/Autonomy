@@ -13,5 +13,10 @@ namespace AutonomyApi.Models.Entities
         public required int CurrencyId { get; set; }
         public int Duration { get; set; }
         public TimeUnit? DurationTimeUnit { get; set; }
+
+        public decimal GetTotal()
+        {
+            return Quantity * UnitPrice * Duration;
+        }
     }
 }

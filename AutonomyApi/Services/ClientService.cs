@@ -45,7 +45,7 @@ namespace AutonomyApi.Services
         {
             using (var transaction = _dbContext.Database.BeginTransaction())
             {
-                var client = new ClientRepository(_dbContext, false).Find(userId, id, client => client);
+                var client = new ClientRepository(_dbContext).Find(userId, id, client => client);
                 client.Name = data.Name;
 
                 _dbContext.SaveChanges();
@@ -55,7 +55,7 @@ namespace AutonomyApi.Services
 
         public void Remove(int userId, int id)
         {
-            var repo = new ClientRepository(_dbContext, false);
+            var repo = new ClientRepository(_dbContext);
 
             using (var transaction = _dbContext.Database.BeginTransaction())
             {

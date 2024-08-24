@@ -11,7 +11,7 @@ namespace AutonomyApi.Repositories
 {
     public class ScheduleRepository : RepositoryBase<AutonomyDbContext, Schedule>
     {
-        public ScheduleRepository(AutonomyDbContext dbContext, bool useComposition=true) : base(dbContext, ctx => ctx.Schedules, useComposition) { }
+        public ScheduleRepository(AutonomyDbContext dbContext) : base(dbContext, ctx => ctx.Schedules) { }
 
         public T Find<T>(int userId, int id, Func<Schedule, T> selector) where T : class
         {

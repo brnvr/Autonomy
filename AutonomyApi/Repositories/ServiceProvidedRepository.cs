@@ -1,6 +1,5 @@
 ﻿using AutonomyApi.Database;
 using AutonomyApi.Models.Entities;
-using AutonomyApi.Models.ViewModels.ServiceProvided;
 using AutonomyApi.WebService;
 using Microsoft.EntityFrameworkCore;
 
@@ -8,7 +7,7 @@ namespace AutonomyApi.Repositories
 {
     public class ServiceProvidedRepository : RepositoryBase<AutonomyDbContext, ServiceProvided>
     {
-        public ServiceProvidedRepository(AutonomyDbContext dbContext, bool useComposition=true) : base(dbContext, ctx => ctx.ServicesProvided, useComposition) { }
+        public ServiceProvidedRepository(AutonomyDbContext dbContext) : base(dbContext, ctx => ctx.ServicesProvided) { }
 
         public SearchResults<T> Search<T>(int userId, Search<ServiceProvided> search, Func<ServiceProvided, T> selector) where T : class
         {
@@ -19,7 +18,9 @@ namespace AutonomyApi.Repositories
 
         protected override IQueryable<ServiceProvided> Compose(IQueryable<ServiceProvided> query)
         {
-            return query.Include(s => s.Clients);
+            return query
+                .Include(s => s.Clients)
+                .Include(s => s.Budget).ThenInclude(b => b.Items);
         }
     }
 }

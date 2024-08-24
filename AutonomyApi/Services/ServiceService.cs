@@ -2,6 +2,7 @@
 using AutonomyApi.Models.Entities;
 using AutonomyApi.Models.ViewModels.Service;
 using AutonomyApi.Repositories;
+using Microsoft.EntityFrameworkCore.Diagnostics;
 
 namespace AutonomyApi.Services
 {
@@ -48,7 +49,7 @@ namespace AutonomyApi.Services
         {
             using (var transaction = _dbContext.Database.BeginTransaction())
             {
-                var repo = new ServiceRepository(_dbContext, false);
+                var repo = new ServiceRepository(_dbContext);
                 var service = repo.Find(userId, id, service => service);
 
                 service.Name = data.Name;
@@ -63,7 +64,7 @@ namespace AutonomyApi.Services
         {
             using (var transaction = _dbContext.Database.BeginTransaction())
             {
-                var repo = new ServiceRepository(_dbContext, false);
+                var repo = new ServiceRepository(_dbContext);
                 var service = repo.Find(userId, id, service => service);
 
                 repo.Remove(service);
@@ -82,7 +83,7 @@ namespace AutonomyApi.Services
         {
             using (var transaction = _dbContext.Database.BeginTransaction())
             {
-                var serviceRepo = new ServiceRepository(_dbContext, false);
+                var serviceRepo = new ServiceRepository(_dbContext);
                 var budgetRepo = new BudgetRepository(_dbContext);
                 var service = serviceRepo.Find(userId, id, service => service);
 
@@ -124,12 +125,12 @@ namespace AutonomyApi.Services
         {
             using (var transaction = _dbContext.Database.BeginTransaction())
             {
-                var serviceRepo = new ServiceRepository(_dbContext, false);
+                var serviceRepo = new ServiceRepository(_dbContext);
                 var service = serviceRepo.Find(userId, id, service => service);
 
                 if (service.BudgetTemplateId != null)
                 {
-                    var budgetRepo = new BudgetRepository(_dbContext, false);
+                    var budgetRepo = new BudgetRepository(_dbContext);
                     var budget = budgetRepo.Find(userId, (int)service.BudgetTemplateId, null, budget => budget);
 
                     budgetRepo.Remove(budget);
@@ -149,8 +150,31 @@ namespace AutonomyApi.Services
             {
                 var service = new ServiceRepository(_dbContext).Find(userId, id, service => new
                 {
-                    service.Id, service.Name
+                    service.Id, service.Name, service.BudgetTemplateId
                 });
+
+                int? budgetId = data.BudgetId ?? service.BudgetTemplateId;
+
+                if (budgetId == null)
+                {
+                    var msg = $"{nameof(data)}.{nameof(data.BudgetId)} cannot be null if {nameof(service)}.{nameof(service.BudgetTemplateId)} is null.";
+
+                    throw new ArgumentNullException(nameof(data.BudgetId), msg);
+                }
+
+                var budgetRepo = new BudgetRepository(_dbContext);
+
+                var budget = budgetRepo.Find(userId, (int)budgetId, null, budget => budget);
+                Budget? newBudget = null;
+
+                if (budget.IsTemplate)
+                {
+                    newBudget = budget.Copy();
+                    newBudget.Name = $"{newBudget.CreationDate.ToString("yyyy-MM-dd HH:mm")} - {service.Name}";
+
+                    budgetRepo.Add(newBudget);
+                    _dbContext.SaveChanges();
+                }
 
                 var serviceProvided = new ServiceProvided
                 {
@@ -159,6 +183,7 @@ namespace AutonomyApi.Services
                     UserId = userId,
                     Date = data.Date,
                     CreationDate = DateTime.UtcNow,
+                    BudgetId = (newBudget ?? budget).Id,
                     Clients = data.ClientIds.Select(clientId =>
                     {
                         var client = clientRepo.Find(userId, clientId, client => new

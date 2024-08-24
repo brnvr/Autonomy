@@ -1,6 +1,5 @@
 ﻿using AutonomyApi.Database;
 using AutonomyApi.Models.Entities;
-using AutonomyApi.Models.ViewModels.Budget;
 using AutonomyApi.WebService;
 using Microsoft.EntityFrameworkCore;
 
@@ -8,7 +7,7 @@ namespace AutonomyApi.Repositories
 {
     public class BudgetRepository : RepositoryBase<AutonomyDbContext, Budget>
     {
-        public BudgetRepository(AutonomyDbContext dbContext, bool useComposition=true) : base(dbContext, ctx => ctx.Budgets, useComposition) { }
+        public BudgetRepository(AutonomyDbContext dbContext) : base(dbContext, ctx => ctx.Budgets) { }
 
         public T Find<T>(int userId, int id, bool? isTemplate, Func<Budget, T> selector) where T : class
         {

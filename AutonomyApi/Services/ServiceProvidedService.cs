@@ -17,7 +17,17 @@ namespace AutonomyApi.Services
 
         public dynamic Get(int userId, ServiceProvidedSearchView search)
         {
-            return new ServiceProvidedRepository(_dbContext).Search(userId, search, service => service);
+            return new ServiceProvidedRepository(_dbContext).Search(userId, search, service => new
+            {
+                service.Id,
+                service.ServiceId,
+                service.ServiceName,
+                service.Clients,
+                service.BudgetId,
+                service.Date,
+                service.CreationDate,
+                Total = service.Budget is null ? 0 : service.Budget.GetTotal()
+            });
         }
     }
 }

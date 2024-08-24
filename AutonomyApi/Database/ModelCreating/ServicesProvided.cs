@@ -22,6 +22,10 @@ namespace AutonomyApi.Database
                 .HasMany(s => s.Clients)
                 .WithOne()
                 .HasForeignKey(c => c.ServiceProvidedId);
+            builder
+                .HasOne(s => s.Budget)
+                .WithMany()
+                .HasForeignKey(s => s.BudgetId);
         }
     }
 }

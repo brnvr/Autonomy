@@ -7,7 +7,7 @@ namespace AutonomyApi.Repositories
 {
     public class ServiceRepository : RepositoryBase<AutonomyDbContext, Service>
     {
-        public ServiceRepository(AutonomyDbContext dbContext, bool useComposition=true) : base(dbContext, ctx => ctx.Services, useComposition) { }
+        public ServiceRepository(AutonomyDbContext dbContext) : base(dbContext, ctx => ctx.Services) { }
 
         public T Find<T>(int userId, int id, Func<Service, T> selector) where T : class
         {
