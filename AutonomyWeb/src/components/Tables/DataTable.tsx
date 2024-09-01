@@ -1,84 +1,125 @@
-import React, { useState } from 'react';
-import { BallTriangle } from 'react-loader-spinner'
+import { ReactNode, useEffect, useState } from 'react';
+import { ThreeDots } from 'react-loader-spinner'
 
 interface Column {
     title:string,
-    minWidth:string,
+    minWidth?:string,
+    useFillColor?:boolean,
     render:(data:object) => any
 }
 
 interface DataTableProps {
+    title:string,
+    top?:ReactNode,
     columns:Column[],
-    fetch: () => Promise<any>
+    callback: (page:number) => Promise<any>
 }
 
-const centeredDivStyle: React.CSSProperties = {
-    position: 'absolute',
-    top: '50%',
-    left: '50%',
-    transform: 'translate(-50%, -50%)',
-    zIndex: 10 
-};
-
-const overlayStyle: React.CSSProperties = {
-    position: 'absolute',
-    width: '100%',
-    height: '100%',
-    transform: 'translateY(-100%)',
-    backgroundColor: 'rgba(255, 255, 255, 0.8)',
-    zIndex: 5
+interface Results {
+    selected:any[],
+    page:number,
+    pageLength:number,
+    totalResults:number,
+    totalPages:number
 }
 
-const DataTable: React.FC<DataTableProps> = (props) => {
-    const [rows, setRows] = useState<any[]>([]);
-    const [isLoading, setIsLoading] = useState<boolean>(false);
+const DataTable = (props:DataTableProps) => {
+    const [data, setData] = useState<Results>();
+    const [pageLoading, setPageLoading] = useState<number>(null);
+    const [pageSelected, setPageSelected] = useState<number>(0);
+    const [pages, setPages] = useState<JSX.Element[]>([]);
 
-    const handleOnClick = () => {
-        handleFetch()
-        setIsLoading(true)
+    const handleFetch = (page:number) => {
+        props.callback(page).then(data => {
+            setData(data)
+            setPageLoading(null)
+        })
+
+        setPageLoading(page)
     }
 
-    const handleFetch = () => props.fetch().then(rows => {
-        setRows(rows)
-        setIsLoading(false)
-    })
+    useEffect(() => {
+        handleFetch(0)
+    }, [])
+
+    useEffect(() => {
+        if (!data) {
+            return
+        }
+        
+        const _pages:JSX.Element[] = []
+
+        for (let i = 0; i < data.totalPages; i++) {
+            _pages.push(
+                <a key={i} onClick={() => handlePageChange(i)} className={`page ${pageSelected == i && "selected"}`} href="#">{i+1}</a>   
+            );
+
+            setPages(_pages)
+        }
+    }, [data, pageSelected])
+
+    const handlePageChange = (page:number) => {
+        if (page == pageSelected) {
+            return
+        }
+
+        setPageSelected(page)
+        handleFetch(page)
+    }
 
     return (
-        <div onClick={handleOnClick} className="rounded-sm border border-stroke bg-white px-5 pt-6 pb-2.5 shadow-default dark:border-strokedark dark:bg-boxdark sm:px-7.5 xl:pb-1">
-            <div className="max-w-full overflow-x-auto" style={{position: 'relative'}}>
-                <table className="w-full table-auto" style={{minHeight: '150px'}}>
-                <thead>
-                    <tr className="bg-gray-2 text-left dark:bg-meta-4">
-                        {props.columns.map((column, index) => (
-                            <th key={index} className={`min-w-[${column.minWidth}] py-4 px-4 font-medium text-black dark:text-white`}>
-                                {column.title}
-                            </th>
-                        ))}
-                    </tr>
-                </thead>
-                <tbody >
-                    {rows.map((row, rowIndex) => (
-                        <tr key={rowIndex}>
-                            {props.columns.map((column, columnIndex) => (
-                                <td key={columnIndex} className={`${rowIndex == rows.length-1 ? "" : "border-b"} border-[#eee] py-5 px-4 dark:border-strokedark`}>
-                                    <p className="text-black dark:text-white">
-                                        {column.render(row)}
-                                    </p>
-                                </td>
-                            ))}
-                        </tr>
-                    ))}
-                </tbody>
-                </table>
-                <div style={{...overlayStyle, display: isLoading ? "block" : "none"}}></div>
-                <div style={{...centeredDivStyle, display: isLoading ? "block" : "none"}}>
-                    <BallTriangle 
-                        height="80"
-                        width="80"
-                        color="#5361ca"
-                        ariaLabel="loading"
-                    />
+        <div className="rounded-sm border border-stroke bg-white px-5 pt-6 pb-2.5 shadow-default dark:border-strokedark dark:bg-boxdark sm:px-7.5 xl:pb-1" style={{paddingBottom:9}}>
+                <div style={{display:'flex', alignItems:'center', gap: 20, marginBottom: 23}}>
+                    <span>
+                        <h4 className="text-xl font-semibold text-black dark:text-white">
+                            {props.title}
+                        </h4> 
+                    </span>
+                    {pageLoading != null &&
+                        <ThreeDots
+                            color="#5361ca"
+                            width="40px"
+                            height="20px"
+                            wrapperStyle={{display: "inline-block", height:"100%"}}
+                        />
+                    }
+                    {props.top && props.top}           
                 </div>
+            
+
+            <div className="datatable-container max-w-full overflow-x-auto" style={{position: 'relative'}}>
+                <div style={{display: 'flex', flexDirection: 'column'}}>
+                    <table className="w-full table-auto" style={{minHeight: '150px'}}>
+                        <thead>
+                            <tr className="bg-gray-2 text-left uppercase dark:bg-meta-4">
+                                {props.columns.map((column, index) => (
+                                    <th key={index} className={`min-w-[${column.minWidth}] py-4 px-4 font-medium text-black dark:text-white`}>
+                                        {column.title}
+                                    </th>
+                                ))}
+                            </tr>
+                        </thead>
+                        <tbody >
+                            {data && data.selected.map((row, rowIndex) => (
+                                <tr key={rowIndex}>
+                                    {props.columns.map((column, columnIndex) => (
+                                        <td key={columnIndex} className="border-b border-[#eee] py-5 px-4 dark:border-strokedark">
+                                            <p className={column.useFillColor ? "" : "text-black dark:text-white"}>
+                                                {column.render(row)}
+                                            </p>
+                                        </td>
+                                    ))}
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+                    <div style={{alignSelf: 'flex-end'}}>
+                        <div style={{display:'flex', justifyContent: 'space-between', alignItems: 'center', gap: 4, paddingTop: 5, paddingBottom: 12 }}>
+                            {pages}
+                        </div>
+                    </div>
+                </div>
+                {pageLoading != null && (<div className="loading-overlay"></div>)}
             </div>
         </div>
     )

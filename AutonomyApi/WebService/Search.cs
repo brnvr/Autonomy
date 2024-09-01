@@ -14,18 +14,18 @@ namespace AutonomyApi.WebService
         [SwaggerSchema("Order direction")]
         public OrderDirection OrderDirection { get; set; }
 
-        public SearchResults<T> GetResults(IEnumerable<T> query)
+        public SearchResults<T> GetResults(IEnumerable<T> query, int page, int pageLength)
         {
             var _query = ProcessQuery(query);
 
-            return new SearchResults<T>(_query, query.Count());
+            return new SearchResults<T>(_query, Page, PageLength, query.Count());
         }
 
         public SearchResults<TSelected> GetResults<TSelected>(IEnumerable<T> query, Func<T, TSelected> selector)
         {
             var _query = ProcessQuery(query);
 
-            return new SearchResults<TSelected>(_query.Select(selector), query.Count());
+            return new SearchResults<TSelected>(_query.Select(selector), Page, PageLength, query.Count());
         }
 
         protected virtual DynamicFilterPipeline<T>? GetFilters()
