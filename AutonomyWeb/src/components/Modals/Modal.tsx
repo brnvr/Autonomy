@@ -6,6 +6,7 @@ export interface ModalProps {
     height?:any,
     visible?:boolean,
     loading?:boolean,
+    locked?:boolean,
     content:ReactNode
 }
 
@@ -18,8 +19,8 @@ const Modal = (props:ModalProps) => {
                     <div className="loading-overlay white"></div>
                     <BallTriangle color="#5361ca" wrapperClass="loader" />
                 </>)}
-            </div>
-            
+                {props.locked && <div className="loading-overlay"></div>}
+            </div> 
         </div>
     )
 }

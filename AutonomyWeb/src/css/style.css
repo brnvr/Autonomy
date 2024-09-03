@@ -220,11 +220,10 @@ span.flatpickr-weekday,
 
 .datatable-container a.page:hover {
   background: #EEEEEE;
-  border: 'none'; 
 }
 
 .datatable-container a.page.selected {
-  border: 1px solid #DEDEDE;
+  border: 1px solid #EEEEEE;
   font-weight: bold;
 }
 
@@ -279,6 +278,15 @@ span.flatpickr-weekday,
   background-color: rgba(28, 36, 52, 0.9);
   z-index: 9999;
   animation: expandToFullscreen 0.1s ease-out forwards;
+}
+
+svg.bg-meta-1 {
+  color: rgb(220 53 69);
+  background-color: transparent;
+}
+
+button.btn-success {
+  @apply inline-flex rounded-md bg-meta-3 py-3 px-4 text-white hover:bg-opacity-90
 }
 
 .modal {

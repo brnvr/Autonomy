@@ -1,16 +1,14 @@
 import axios from 'axios'
-import DataTable from './DataTable'
 import { useState } from 'react'
-import { HiPencilSquare } from "react-icons/hi2"
-import { GoTrash } from "react-icons/go"
-import ActionButton from '../Buttons/ActionButton'
-import ModalForm from '../Modals/ModalForm'
-import { FaPlus } from "react-icons/fa"
-import { SubmitHandler, useForm } from 'react-hook-form'
-import { handleErrors } from '../../react-hook-form-utils'
-import TextArea from '../Form/TextArea'
-import Input from '../Form/Input'
+import { useForm } from 'react-hook-form'
+import TextAreaField from '../Form/TextAreaField'
+import TextInputField from '../Form/TextInputField'
+import TableBase from './TableBase'
 
+type Inputs = {
+  name: string
+  description: string
+}
 
 const getServiceById = (id:number) => {
   return axios.get(`${import.meta.env.VITE_API_BASE_URL}Services/${id}`)
@@ -20,7 +18,8 @@ const getServices = (page:number) => {
   return axios.get(`${import.meta.env.VITE_API_BASE_URL}Services`, {
     params: {
       page,
-      pageLength: 2
+      pageLength: 8,
+      order: "id"
     }
   }).then(r => {
     return r.data
@@ -28,102 +27,77 @@ const getServices = (page:number) => {
 }
 
 const updateService = (id:number, data:any) => {
+  console.log(id, data)
   return axios.put(`${import.meta.env.VITE_API_BASE_URL}Services/${id}`, data).then(r => {
-    console.log(r)
     return r.data
   })
 }
 
-type Inputs = {
-  example: string
-  exampleRequired: string
+const createService = (data:any) => {
+  return axios.post(`${import.meta.env.VITE_API_BASE_URL}Services`, data).then(r => {
+    return r.data
+  })
+}
+
+const deleteService = (id:number) => {
+  return axios.delete(`${import.meta.env.VITE_API_BASE_URL}Services/${id}`).then(r => {
+    return r.data
+  })
 }
 
 const ServicesTable = () => {
-  const [currentService, setCurrentService] = useState<any>(null)
-  const [isFormLoading, setFormLoading] = useState<boolean>(false)
-  const [isFormVisible, setFormVisible] = useState<boolean>(false)
+  const [formData, setFormData] = useState<any>(null)
 
   const {
     register,
+    setValue,
     handleSubmit,
-    watch,
     formState: { errors },
   } = useForm<Inputs>()
-  const onSubmit: SubmitHandler<Inputs> = (data) => console.log(data)
+
+  const columns = [
+    { title: 'Name', minWidth: '100px', render: (data:any) => data.name },
+    { title: 'Description', minWidth: '100px', render: (data:any) => data.description }
+  ];
 
   const formContent = <>
-    <Input
-      defaultValue={currentService?.name}
+    <TextInputField
+      label="Name"
+      name="name"
+      defaultValue={formData?.name}
       placeholder="Service name"
       register={register}
       errors={errors}
-      fieldName="example"
-      options={{minLength:2}}
+      setValue={setValue}
+      options={{required:true, minLength:2}}
     />
-    <TextArea 
+    <TextAreaField
+      label="Description"
+      name="description"
+      defaultValue={formData?.description}
       placeholder="Service description"
       register={register}
       errors={errors}
-      fieldName="exampleRequired"
+      setValue={setValue}
       options={{minLength:4}}
     />
   </>
 
-  const onSubmitServiceForm = e => {
-    //updateService(currentService.id, formData)
-    handleSubmit(onSubmit)(e)
-    console.log(errors)
-  }
-  
-  const onCloseServiceForm = () => {
-    setFormVisible(false)
-    setCurrentService(null)
-  }
-
-  
-  const showServiceForm = (e, data?) => {
-      if (data) {
-        setFormLoading(true)
-
-        getServiceById(data.id).then(r => {
-          setFormLoading(false)
-          setCurrentService(r.data)
-        })
-      }
-
-    setFormVisible(true)
-  }
-
-  const columns = [
-    { title: 'Name', minWidth: '100px', render: (data:any) => data.name },
-    { title: 'Description', minWidth: '100px', render: (data:any) => data.description },
-    { title: 'Actions', useFillColor: true, render: (data:any) => 
-      <span className='actions'>
-        <ActionButton icon={<HiPencilSquare />} onClick={e => showServiceForm(e, data)}/>
-        <ActionButton icon = {<GoTrash />} onClick={() => {}}/>
-      </span>
-    }
-  ];
-
-  const newService = 
-    <div style={{marginLeft: 'auto'}}>
-      <span style={{float:'right'}}>
-        <button
-          onClick={showServiceForm}
-          className="inline-flex rounded-md bg-meta-3 py-3 px-4 text-white hover:bg-opacity-90"
-        >
-          <FaPlus />
-        </button>
-      </span>
-    </div>
-
-  return (
-    <>
-      <ModalForm loading={isFormLoading} visible={isFormVisible} content={formContent} onSubmit={onSubmitServiceForm} onClose={onCloseServiceForm}/>
-      <DataTable title="Services" top={newService} columns={columns} callback={getServices} />
-    </>
-  );
+  return <TableBase 
+    title="Services"
+    columns={columns}
+    formContent={formContent}
+    formData={formData}
+    nameProperty="name"
+    languageResourceKey="services"
+    setFormData={setFormData}
+    handleSubmit={handleSubmit}
+    get={getServices}
+    getById={getServiceById}
+    post={createService}
+    update={updateService}
+    delete={deleteService}
+  />
 };
 
 export default ServicesTable

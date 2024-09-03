@@ -1,12 +1,12 @@
-import { ReactNode } from "react";
+import { IconType } from "react-icons";
 
 interface ActionButtonProps {
-    icon:ReactNode,
+    icon:IconType,
     onClick:(e?:any)=>void
 }
 
 const ActionButton = (props:ActionButtonProps) => (
-    <button onClick={props.onClick} className="hover:text-primary" style={{fontSize: 20}}>{props.icon}</button>
+    <button onClick={props.onClick} className="hover:text-primary" style={{fontSize: 20}}>{<props.icon />}</button>
 )
 
 export default ActionButton;

@@ -1,0 +1,26 @@
+{
+    "en": {
+        "messages": {
+            "actions": {
+                "onCreate": "{resource_type} created",
+                "onUpdate": "{resource_type} updated",
+                "onDelete": "{resource_type} deleted"
+            },
+
+            "confirmation": {
+                "deleting": {
+                    "title": "deleting {resource_type}",
+                    "body": "deleting {resource_type} {resource_name}. This action cannot be undone."
+                }
+            },
+
+            "errors": {
+                "onDuplicate": "duplicate {resource_type}"
+            }
+        },
+
+        "resources": {
+            "services": "service"
+        }
+    }
+}

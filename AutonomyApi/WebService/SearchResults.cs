@@ -18,7 +18,7 @@ namespace AutonomyApi.WebService
             Selected = selected;
             Page = Math.Max(page, 0);
             PageLength = pageLength;
-            TotalPages = pageLength == 0 ? 1 : (totalResults / pageLength + 1);
+            TotalPages = pageLength == 0 ? 1 : (int)Math.Ceiling((double)TotalResults / PageLength);
         }
     }
 }
