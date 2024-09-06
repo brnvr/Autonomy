@@ -17,7 +17,6 @@ namespace AutonomyApi.Models.ViewModels.Budget
                     Position = pos,
                     Name = item.Name,
                     Quantity = item.Quantity,
-                    CurrencyId = item.CurrencyId,
                     UnitPrice = item.UnitPrice,
                     Duration = item.Duration,
                     DurationTimeUnit = item.DurationTimeUnit

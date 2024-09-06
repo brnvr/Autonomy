@@ -9,8 +9,6 @@ namespace AutonomyApi.Models.Entities
         public required string Name { get; set; }
         public required int Quantity { get; set; }
         public required decimal UnitPrice { get; set; }
-        public Currency? Currency { get; set; }
-        public required int CurrencyId { get; set; }
         public int Duration { get; set; }
         public TimeUnit? DurationTimeUnit { get; set; }
 

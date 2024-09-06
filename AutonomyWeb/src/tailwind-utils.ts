@@ -1,6 +1,6 @@
 export type TailwindColor = "gray" | "red" | "blue" | "green" | "yellow"
 
-export type TailwindStyleOption = "bg" | "border"
+export type TailwindStyleOption = "bg" | "text" | "border"
 
 export function getColorClass(type:TailwindStyleOption, color:TailwindColor) {
     switch (color) {

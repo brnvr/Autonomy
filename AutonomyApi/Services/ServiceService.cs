@@ -91,10 +91,11 @@ namespace AutonomyApi.Services
                 {
                     var budget = new Budget
                     {
-                        Name = data.Name,
+                        Name = $"{DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss")} {service.Name} template",
                         Header = data.Header,
                         Footer = data.Footer,
                         IsTemplate = true,
+                        CurrencyId = data.CurrencyId,
                         UserId = userId,
                         CreationDate = DateTime.UtcNow,
                         Items = data.Items.ToBudgetItemList()
@@ -110,7 +111,7 @@ namespace AutonomyApi.Services
                 {
                     var budget = budgetRepo.Find(userId, (int)service.BudgetTemplateId, true, budget => budget);
 
-                    budget.Name = data.Name;
+                    budget.Name = $"{DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss")} {service.Name} template";
                     budget.Header = data.Header;
                     budget.Footer = data.Footer;
                     budget.Items = data.Items.ToBudgetItemList();

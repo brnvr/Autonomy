@@ -5,35 +5,45 @@ import { GoTrash } from "react-icons/go"
 import ActionButton from '../Buttons/ActionButton'
 import ModalForm from '../Modals/ModalForm'
 import { FaPlus } from "react-icons/fa"
-import { SubmitHandler, UseFormHandleSubmit } from 'react-hook-form'
+import { SubmitHandler, UseFormHandleSubmit, UseFormReset } from 'react-hook-form'
 import toast, { Toaster } from 'react-hot-toast'
 import ModalConfirm from '../Modals/ModalConfirm'
 import { PiWarning } from "react-icons/pi";
 import { formatMessage } from '../../language-utils'
+import { handleErrors } from '../../ui-utils'
+
+export type FormState = "creating" | "updating"
 
 interface TableBaseProps<Inputs> {
   title:string
   formContent:JSX.Element
+  idProperty:any
   nameProperty:string
-  languageResourceKey:string
+  resourceName:string
   columns:Column[]
   formData:any
-  handleSubmit:UseFormHandleSubmit<Inputs, undefined>
+  formInactive?:boolean
   setFormData:React.Dispatch<any>
-  get:(page:number) => Promise<any>
+  handleFormSubmit:UseFormHandleSubmit<Inputs, undefined>
+  resetForm:UseFormReset<Inputs>
+  setFormState?:React.Dispatch<FormState>
+  get:(page:number, searchTerm?:string) => Promise<any>
   getById:(id:any) => Promise<any>
   post:(data:any) => Promise<any>
   update:(id:any, data:any) => Promise<any>
   delete:(id:any) => Promise<any>
 }
 
-const messageOnCreate = formatMessage("en", "actions", "onCreate", ["resource_type", "service"])
-  const messageOnUpdate = formatMessage("en", "actions", "onUpdate", ["resource_type", "service"])
-  const messageOnDelete = formatMessage("en", "actions", "onDelete", ["resource_type", "service"])
-  const messageOnDuplicate = formatMessage("en", "errors", "onDuplicate", ["resource_type", "service"])
-  const deleteConfirmation = formatMessage("en", "confirmation", "deleting", ["resource_type", "service"])
+let searchTimeout = null
 
 const TableBase = <Inputs,>(props:TableBaseProps<Inputs>) => {
+  const [resourceName, setResourceName] = useState<string>(null)
+  const [messageOnCreate, setMessageOnCreate] = useState<string>(null)
+  const [messageOnUpdate, setMessageOnUpdate] = useState<string>(null)
+  const [messageOnDelete, setMessageOnDelete] = useState<string>(null)
+  const [messageOnDuplicate, setMessageOnDuplicate] = useState<string>(null)
+  const [deleteConfirmation, setDeleteConfirmation] = useState<any>(null)
+  const [searchTerm, setSearchTerm] = useState<string>(null)
   const [tableData, setTableData] = useState<SearchResults>(null)
   const [tablePage, setTablePage] = useState<number>(0)
   const [isTableLoading, setTableLoading] = useState<boolean>(false)
@@ -41,8 +51,16 @@ const TableBase = <Inputs,>(props:TableBaseProps<Inputs>) => {
   const [isFormVisible, setFormVisible] = useState<boolean>(false)
   const [isFormSubmitting, setFormSubmitting] = useState<boolean>(false)
   const [dataToDelete, setDataToDelete] = useState<any>(null)
-  const [isDeleting, setIsDeleting] = useState<boolean>(false)
+  const [isDeleting, setDeleting] = useState<boolean>(false)
   const [deleteConfirmationMessage, setDeleteConfirmationMessage] = useState<ReactNode>(null)
+
+  useEffect(() => {
+    setMessageOnCreate(formatMessage("en", "actions", "onCreate", ["resource_type", resourceName]))
+    setMessageOnUpdate(formatMessage("en", "actions", "onUpdate", ["resource_type", resourceName]))
+    setMessageOnDelete(formatMessage("en", "actions", "onDelete", ["resource_type", resourceName]))
+    setMessageOnDuplicate(formatMessage("en", "errors", "onDuplicate", ["resource_type", resourceName]))
+    setDeleteConfirmation(formatMessage("en", "confirmation", "deleting", ["resource_type", resourceName]))
+  }, [resourceName])
 
   useEffect(() => {
     if (dataToDelete) {
@@ -59,8 +77,12 @@ const TableBase = <Inputs,>(props:TableBaseProps<Inputs>) => {
     }
   }, [dataToDelete])
 
+  useEffect(() => {
+    handlePageChange(tablePage)
+  }, [searchTerm])
+
   const handlePageChange = page => {
-    props.get(page).then(r => {
+    props.get(page, searchTerm).then(r => {
       if (page >= r.totalPages) {
         handlePageChange(r.totalPages-1)  
         return
@@ -75,37 +97,34 @@ const TableBase = <Inputs,>(props:TableBaseProps<Inputs>) => {
   }
 
   useEffect(() => {
+    setResourceName(props.resourceName)
     handlePageChange(0)
   }, [])
 
   const onSubmit: SubmitHandler<Inputs> = (data) => {
     setFormSubmitting(true)
     
-    const result = props.formData == null ? props.post(data) : props.update(props.formData.id, data)
+    const result = props.formData ? props.update(props.formData[props.idProperty], data) : props.post(data)
 
     result.then(r => {
       handlePageChange(tablePage)
-      handleFormClose()
-      toast.success(props.formData == null ? messageOnCreate : messageOnUpdate)
-    }).catch(r => {
-      setFormSubmitting(false)
+      toast.success(props.formData ? messageOnUpdate : messageOnCreate)
 
-      console.log(r)
-      if (r.status == 409) {
-        toast.error(messageOnDuplicate)
+      if (props.formData) {
+        handleFormClose()
       } else {
-        const errors = r.response.data.errors
-        
-        if (Array.isArray(errors)) {
-          errors.forEach(error => {
-            toast.error(error)
-          })
-        } else if (typeof errors === 'object' && errors !== null) {
-          Object.entries(errors).forEach(error => {
-            toast.error(error[1].toString())
-          })
+        if (r && r[props.idProperty]) {
+          const newData = {...data}
+          newData[props.idProperty] = r[props.idProperty]
+          setFormSubmitting(false)
+          props.setFormData(newData)
+        } else {
+          handleFormClose()
         }
       }
+    }).catch(r => {
+      setFormSubmitting(false)
+      handleErrors(r, messageOnDuplicate)
     })
   }
   
@@ -113,27 +132,45 @@ const TableBase = <Inputs,>(props:TableBaseProps<Inputs>) => {
     setFormVisible(false)
     props.setFormData(null)
     setFormSubmitting(false)
+    props.resetForm()
+    props.setFormState && props.setFormState(null)
   }
 
   const handleDelete = (data:any) => {
-    setIsDeleting(true)
+    setDeleting(true)
 
-    props.delete(data.id).then(r => {
+    props.delete(data[props.idProperty]).then(r => {
       toast.success(messageOnDelete)
       handlePageChange(tablePage)
-      setIsDeleting(false)
+      setDeleting(false)
       setDataToDelete(null)
     })
   }
   
+  const handleSearch = e => {
+    if (searchTimeout) {
+      clearTimeout(searchTimeout)
+    }
+
+    setTableLoading(true)
+
+    searchTimeout = setTimeout(() => {
+      console.log(e.target.value)
+      setSearchTerm(e.target.value)
+    }, 700)
+  }
+  
   const showForm = (data?) => {
     if (data) {
+      props.setFormState && props.setFormState("updating")
       setFormLoading(true)
 
-      props.getById(data.id).then(r => {
+      props.getById(data[props.idProperty]).then(r => {
         setFormLoading(false)
-        props.setFormData(r.data)
+        props.setFormData(r)
       })
+    } else {
+      props.setFormState && props.setFormState("creating")
     }
 
     setFormVisible(true)
@@ -148,37 +185,42 @@ const TableBase = <Inputs,>(props:TableBaseProps<Inputs>) => {
     }
   ];
 
-  const createButton = 
-    <div style={{marginLeft: 'auto'}}>
-      <span style={{float:'right'}}>
-        <button onClick={() => showForm()} className="btn-success">
-          <FaPlus />
-        </button>
-      </span>
+  const search = 
+    <div style={{width:300}}>
+      <input placeholder="Type to search..." onInput={handleSearch} />
     </div>
+
+  const createButton = 
+    <button onClick={() => showForm()} className="btn-success">
+      <FaPlus />
+    </button>
 
   return (
     <>
       <DataTable 
         title={props.title}
-        top={createButton} 
+        topLeft={search}
+        topRight={createButton} 
         columns={columns} 
         data={tableData} 
+        displayHeader={true}
         loading={isTableLoading}
         onPageChange={handlePageChange}
       />
       <ModalForm
         loading={isFormLoading} 
+        inactive={props.formInactive}
         visible={isFormVisible} 
         content={props.formContent} 
-        onSubmit={props.handleSubmit(onSubmit)}
+        onSubmit={props.handleFormSubmit(onSubmit)}
         submitting={isFormSubmitting}
         onClose={handleFormClose}
+        saveButtonLabel={props.formData ? "Save" : "Create"}
       />
       <ModalConfirm
         color="red"
         icon={PiWarning}
-        title={deleteConfirmation.title}
+        title={deleteConfirmation?.title}
         body={deleteConfirmationMessage}
         visible={dataToDelete != null}
         onClose={() => setDataToDelete(null)}

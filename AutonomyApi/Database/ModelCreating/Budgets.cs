@@ -26,6 +26,10 @@ namespace AutonomyApi.Database
                 .HasMany(budget => budget.Items)
                 .WithOne()
                 .HasForeignKey(item => item.BudgetId);
+            builder
+                .HasOne(budget => budget.Currency)
+                .WithMany()
+                .HasForeignKey(budget => budget.CurrencyId);
         }
     }
 }

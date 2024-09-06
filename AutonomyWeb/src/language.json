@@ -1,0 +1,45 @@
+{
+    "en": {
+        "messages": {
+            "actions": {
+                "onCreate": "{resource_type} created",
+                "onUpdate": "{resource_type} updated",
+                "onDelete": "{resource_type} deleted"
+            },
+
+            "confirmation": {
+                "deleting": {
+                    "title": "deleting {resource_type}",
+                    "body": "deleting {resource_type} {resource_name}. This action cannot be undone."
+                }
+            },
+
+            "errors": {
+                "onDuplicate": "duplicate {resource_type}"
+            }
+        },
+
+        "tables": {
+            "services": {
+                "name": "Services",
+                "columns": {
+                    "name": "Name",
+                    "description": "Description"
+                },
+                "form": {
+                    "name": {
+                        "label": "Name",
+                        "placeholder": "Service name"
+                    },
+                    "description": {
+                        "label": "Description",
+                        "placeholder": "Service description"
+                    },
+                    "budgetTemplate": {
+                        "buttonLabel": "Edit budget template"
+                    }
+                }
+            }
+        }
+    }
+}

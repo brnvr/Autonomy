@@ -7,6 +7,8 @@
         public required string Name { get; set; }
         public string? Header { get; set; }
         public string? Footer { get; set; }
+        public Currency? Currency { get; set; }
+        public required int CurrencyId { get; set; }
         public required List<BudgetItem> Items { get; set; }
         public required bool IsTemplate { internal get; set; }
         public required DateTime CreationDate { get; set; }
@@ -24,12 +26,12 @@
                 Name = Name,
                 Header = Header,
                 Footer = Footer,
+                CurrencyId = CurrencyId,
                 Items = Items.Select(item => new BudgetItem
                 {
                     Name = item.Name,
                     Position = item.Position,
                     Quantity = item.Quantity,
-                    CurrencyId = item.CurrencyId,
                     UnitPrice = item.UnitPrice,
                     Duration = item.Duration,
                     DurationTimeUnit = item.DurationTimeUnit

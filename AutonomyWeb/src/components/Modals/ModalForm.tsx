@@ -4,8 +4,8 @@ import { Oval } from "react-loader-spinner";
 
 
 interface ModalFormProps extends ModalProps {
-    saveButtonText?:string
-    cancelButtonText?:string
+    saveButtonLabel?:string
+    cancelButtonLabel?:string
     onSubmit?:(e?:any)=>void
     submitting?:boolean
     onClose?:(e?:any)=>void
@@ -22,7 +22,7 @@ const ModalForm = (props:ModalFormProps) => {
     }
 
     const content = <div style={{display:'flex', alignItems:'center', gap: 8}}>
-        <span>{props.saveButtonText || "Save"}</span>
+        <span>{props.saveButtonLabel || "Save"}</span>
         {props.submitting && <>
             <Oval
                 color="white"
@@ -38,7 +38,7 @@ const ModalForm = (props:ModalFormProps) => {
             {props.content}
             <div style={{display:'flex', justifyContent:'space-between'}}>
                 <div style={{display:'inline-block', width:200}}>
-                    <Button color="blue" content={props.cancelButtonText || "Cancel"} border={true} onClick={onClose} />
+                    <Button color="blue" content={props.cancelButtonLabel || "Cancel"} border={true} onClick={onClose} />
                 </div>
                 <div style={{display:'inline-block', width:200}}>
                     <Button color="blue" type="submit" content={content} />
@@ -49,7 +49,14 @@ const ModalForm = (props:ModalFormProps) => {
 
     return props.visible && (
         <div style={{position:'relative'}}>
-            <Modal loading={props.loading} locked={props.submitting} visible={props.visible} width={props.width} height={props.height} content={modalContent} />
+            <Modal
+                loading={props.loading}
+                inactive={props.inactive}
+                locked={props.submitting}
+                visible={props.visible}
+                width={props.width}
+                height={props.height}
+                content={modalContent} />
         </div>
     )
 }

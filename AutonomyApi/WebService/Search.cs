@@ -16,16 +16,16 @@ namespace AutonomyApi.WebService
 
         public SearchResults<T> GetResults(IEnumerable<T> query, int page, int pageLength)
         {
-            var _query = ProcessQuery(query);
+            var _query = ProcessQuery(query, out IEnumerable<T> filtered);
 
-            return new SearchResults<T>(_query, Page, PageLength, query.Count());
+            return new SearchResults<T>(_query, Page, PageLength, filtered.Count());
         }
 
         public SearchResults<TSelected> GetResults<TSelected>(IEnumerable<T> query, Func<T, TSelected> selector)
         {
-            var _query = ProcessQuery(query);
+            var _query = ProcessQuery(query, out IEnumerable<T> filtered);
 
-            return new SearchResults<TSelected>(_query.Select(selector), Page, PageLength, query.Count());
+            return new SearchResults<TSelected>(_query.Select(selector), Page, PageLength, filtered.Count());
         }
 
         protected virtual DynamicFilterPipeline<T>? GetFilters()
@@ -33,7 +33,7 @@ namespace AutonomyApi.WebService
             return null;
         }
 
-        protected IEnumerable<T> ProcessQuery(IEnumerable<T> query)
+        protected IEnumerable<T> ProcessQuery(IEnumerable<T> query, out IEnumerable<T> filtered)
         {
             IEnumerable<T> _query = query;
 
@@ -43,6 +43,8 @@ namespace AutonomyApi.WebService
             {
                 _query = filters.GetDelegate()(_query);
             }
+
+            filtered = _query;
 
             if (!string.IsNullOrEmpty(Order))
             {

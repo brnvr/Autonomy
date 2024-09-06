@@ -2,8 +2,9 @@ import { ReactNode, useEffect, useState } from 'react';
 import { IconType } from 'react-icons';
 import { ThreeDots } from 'react-loader-spinner'
 
+
 export interface Column {
-    title:string,
+    title:ReactNode,
     minWidth?:string,
     useFillColor?:boolean,
     render:(data:object) => any
@@ -11,8 +12,10 @@ export interface Column {
 
 interface DataTableProps {
     icon?:IconType,
-    title:string,
-    top?:ReactNode,
+    displayHeader?:boolean
+    title?:string,
+    topRight?:ReactNode,
+    topLeft?:ReactNode
     onPageChange?:(page:number) => void
     columns:Column[],
     loading?:boolean,
@@ -21,18 +24,16 @@ interface DataTableProps {
 
 export interface SearchResults {
     selected:any[],
-    page:number,
-    pageLength:number,
-    totalResults:number,
-    totalPages:number
+    page?:number,
+    totalPages?:number
 }
 
 const DataTable = (props:DataTableProps) => {
     const [pageSelected, setPageSelected] = useState<number>(0);
     const [pages, setPages] = useState<JSX.Element[]>([]);
-
+    
     useEffect(() => {
-        if (!props.data) {
+        if (!props.data?.totalPages) {
             return
         }
         
@@ -60,8 +61,8 @@ const DataTable = (props:DataTableProps) => {
 
     return (
         <div style={{position:'relative'}}>
-            <div className="rounded-sm border border-stroke bg-white px-5 pt-6 pb-2.5 shadow-default dark:border-strokedark dark:bg-boxdark sm:px-7.5 xl:pb-1" style={{paddingBottom:9}}>
-                <div style={{display:'flex', alignItems:'center', gap: 20, marginBottom: 23}}>
+            <div className="datatable-container" style={{paddingBottom:13}}>
+                {props.displayHeader && <div style={{display:'flex', alignItems:'center', gap:25, marginBottom: 19}}>
                     <span>
                         <h4 className="text-xl font-semibold text-black dark:text-white">
                             <div style={{display:'flex', alignItems:'center', gap:10}}>
@@ -70,20 +71,23 @@ const DataTable = (props:DataTableProps) => {
                             </div>
                         </h4> 
                     </span>
-                    {props.loading &&
-                        <ThreeDots
-                            color="#5361ca"
-                            width="40px"
-                            height="20px"
-                            wrapperStyle={{display: "inline-block", height:"100%"}}
-                        />
-                    }
-                    {props.top && props.top}           
-                </div>
+                    {props.topLeft && props.topLeft}   
+                        {props.loading &&
+                            <ThreeDots
+                                color="#5361ca"
+                                width={40}
+                                height={20}
+                                
+                            />
+                        }
+                    <div style={{ marginLeft:'auto'}}>
+                        {props.topRight && props.topRight}           
+                    </div>
+                </div>}
 
-                <div className="datatable-container max-w-full overflow-x-auto" style={{position: 'relative'}}>
+                <div className="datatable-body max-w-full overflow-x-auto" style={{position: 'relative'}}>
                     <div style={{display: 'flex', flexDirection: 'column'}}>
-                        <table className="w-full table-auto" style={{minHeight: '150px'}}>
+                        <table className="w-full table-auto" >
                             <thead>
                                 <tr className="bg-gray-2 text-left uppercase dark:bg-meta-4">
                                     {props.columns.map((column, index) => (
@@ -97,7 +101,7 @@ const DataTable = (props:DataTableProps) => {
                                 {props.data && props.data.selected.map((row, rowIndex) => (
                                     <tr key={rowIndex}>
                                         {props.columns.map((column, columnIndex) => (
-                                            <td key={columnIndex} className="border-b border-[#eee] py-5 px-4 dark:border-strokedark">
+                                            <td key={columnIndex} className="border-b border-[#eee] px-4 dark:border-strokedark" style={{height:64}}>
                                                 <p className={column.useFillColor ? "" : "text-black dark:text-white"}>
                                                     {column.render(row)}
                                                 </p>
@@ -109,7 +113,7 @@ const DataTable = (props:DataTableProps) => {
                         </table>
                         <div style={{alignSelf: 'flex-end'}}>
                             <div style={{display:'flex', justifyContent: 'space-between', alignItems: 'center', gap: 4, paddingTop: 5, paddingBottom: 12 }}>
-                                {pages}
+                                {props.data?.totalPages && props.data.selected.length >= 1 && pages}
                             </div>
                         </div>
                     </div>      

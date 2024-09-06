@@ -15,10 +15,6 @@ namespace AutonomyApi.Database
             builder
                 .HasIndex(item => new { item.BudgetId, item.Name })
                 .IsUnique();
-            builder
-                .HasOne(item => item.Currency)
-                .WithMany()
-                .HasForeignKey(item => item.CurrencyId);
         }
     }
 }

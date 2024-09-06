@@ -10,7 +10,7 @@ namespace AutonomyApi.WebService
     {
         protected TDbContext DbContext { get; }
         protected DbSet<TEntity> Entities { get; }
-        
+
 
         public RepositoryBase(TDbContext dbContext, Func<TDbContext, DbSet<TEntity>> entitiesFromContext)
         {
@@ -26,6 +26,16 @@ namespace AutonomyApi.WebService
         public virtual void Remove(TEntity entity)
         {
             Entities.Remove(entity);
+        }
+
+        protected virtual IEnumerable<TEntity> Find(DynamicFilterPipeline<TEntity>? filters)
+        {
+            if (filters == null)
+            {
+                return Compose(Entities);
+            }
+
+            return filters.GetDelegate()(Compose(Entities));
         }
 
         protected SearchResults<T> Search<T>(Search<TEntity> search, IQueryable<TEntity> query, Func<TEntity, T> selector) where T : class

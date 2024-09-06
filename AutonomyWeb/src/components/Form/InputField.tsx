@@ -1,19 +1,20 @@
-import { FieldErrors, Path, PathValue, RegisterOptions, UseFormRegister, UseFormSetValue } from "react-hook-form"
+import { FieldErrors, Path, PathValue, RegisterOptions, UseFormClearErrors, UseFormRegister, UseFormResetField, UseFormSetValue } from "react-hook-form"
 import { handleErrors } from "../../react-hook-form-utils"
 import { useEffect } from "react"
 
-interface InputProps<T,F extends Path<T>> {
+interface InputFieldProps<T,F extends Path<T>> {
     label:string
     defaultValue?:PathValue<T,F>
     placeholder?:string
     name:F
+    type?:string
     options?:RegisterOptions<T,F>
     register?:UseFormRegister<T>
     setValue:UseFormSetValue<T>
     errors?:FieldErrors<T>
 }
 
-const TextInputField = <T,F extends Path<T>,>(props:InputProps<T,F>) => {
+const InputField = <T,F extends Path<T>,>(props:InputFieldProps<T,F>) => {
     const handleChange = e => {
         props.setValue(props.name, e.target.value);
     }
@@ -26,6 +27,7 @@ const TextInputField = <T,F extends Path<T>,>(props:InputProps<T,F>) => {
         <div className="form-field">
             <label>{props.label}</label>
             <input 
+                type={props.type || "text"}
                 placeholder={props.placeholder}
                 onInput={handleChange}
                 {...(props.register && props.name ? props.register(props.name, props.options) : {})}
@@ -37,4 +39,4 @@ const TextInputField = <T,F extends Path<T>,>(props:InputProps<T,F>) => {
     )
 }
 
-export default TextInputField
+export default InputField

@@ -14,8 +14,8 @@ interface ModalConfirmProps {
     body:ReactNode
     icon?:IconType
     color:TailwindColor
-    confirmButtonText?:string
-    cancelButtonText?:string
+    confirmButtonLabel?:string
+    cancelButtonLabel?:string
     onConfirm?:(e?:any)=>void
     confirming?:boolean
     onClose?:(e?:any)=>void  
@@ -32,7 +32,7 @@ const ModalForm = (props:ModalConfirmProps) => {
     }
 
     const content = <div style={{display:'flex', alignItems:'center', gap: 8}}>
-        <span>{props.confirmButtonText || "Confirm"}</span>
+        <span>{props.confirmButtonLabel || "Confirm"}</span>
         {props.confirming && <>
             <Oval
                 secondaryColor="none"
@@ -57,7 +57,7 @@ const ModalForm = (props:ModalConfirmProps) => {
             </div>
             <div style={{display:'flex', justifyContent:'space-between'}}>
                 <div style={{display:'inline-block', width:200}}>
-                    <Button color="gray" content={props.cancelButtonText || "Cancel"} onClick={onClose} />
+                    <Button color="gray" content={props.cancelButtonLabel || "Cancel"} onClick={onClose} />
                 </div>
                 <div style={{display:'inline-block', width:200}}>
                     <Button color={props.color} content={content} onClick={onConfirm}/>

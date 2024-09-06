@@ -6,5 +6,6 @@ namespace AutonomyApi.Models.ViewModels.Budget
     {
         [Length(Constants.Name.MinLength, Constants.Name.MaxLength)]
         public required string Name { get; set; }
+        public required int CurrencyId { get; set; }
     }
 }

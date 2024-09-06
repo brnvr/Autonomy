@@ -1,4 +1,4 @@
-﻿/*using AutonomyApi.WebService;
+﻿using AutonomyApi.WebService;
 using AutonomyApi.Services;
 using Microsoft.AspNetCore.Mvc;
 using AutonomyApi.Models.ViewModels.Client;
@@ -23,14 +23,14 @@ namespace AutonomyApi.Controllers
         /// <summary>
         /// List all currencies
         /// </summary>
-        /// <param name="search">Filter by code or name</param>
+        /// <param name="searchTerm">Filter by code or name</param>
         /// <returns></returns>
         [HttpGet]
-        public IActionResult Get(string? search)
+        public IActionResult Get(string? searchTerm)
         {
             return _ws.Perform(() =>
             {
-                return Ok(new CurrencyService(_dbContext).Get(search));
+                return Ok(new CurrencyService(_dbContext).Get(searchTerm));
             });
         }
 
@@ -49,4 +49,4 @@ namespace AutonomyApi.Controllers
         }
 
     }
-}*/
+}

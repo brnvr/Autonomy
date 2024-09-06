@@ -39,8 +39,8 @@ namespace AutonomyApi.Repositories
         protected override IQueryable<Budget> Compose(IQueryable<Budget> query)
         {
             return query
-                .Include(c => c.Items)
-                .ThenInclude(item => item.Currency);
+                .Include(b => b.Currency)
+                .Include(b => b.Items.OrderBy(item => item.Position));
         }
     }
 }

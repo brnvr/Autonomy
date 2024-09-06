@@ -1,23 +1,32 @@
-import languageDefinitions from "../language.json"
+import languageDefinitions from "./language.json"
+import { setCapitalLetter } from "./string-utils"
 
 type Language = "en"
 type MessageType = "actions" | "errors" | "confirmation"
 
-function setCapitalLetter(str:string) {
-    if (str.length == 0) {
-        return str
+export function getTableInfo(language:Language, key:string):any {
+    const lang = languageDefinitions[language]
+
+    if (!lang) {
+        throw `Language ${language} not found in language definitions.`
     }
 
-    const capitalLetter = str[0].toUpperCase()
+    const tables = lang["tables"]
 
-    if (str.length == 1) {
-        return capitalLetter
+    if (!tables) {
+        throw `Key tables not found for language ${language} in language definitions.`
     }
 
-    return capitalLetter + str.substring(1)
+    const table = tables[key]
+
+    if (!table) {
+        throw `Table with key ${key} not found for language ${language} in language definitions.`
+    }
+
+    return table
 }
 
-export function formatMessage(language:Language, sectionName:MessageType, key:string, ...replaceValues:string[][]):any {
+export function formatMessage(language:Language, sectionName:MessageType, key:string, ...replaceValues:string[][]):string|any {
     const lang = languageDefinitions[language]
 
     if (!lang) {

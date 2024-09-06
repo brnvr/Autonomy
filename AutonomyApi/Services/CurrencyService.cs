@@ -1,4 +1,4 @@
-﻿/*using AutonomyApi.Database;
+﻿using AutonomyApi.Database;
 using AutonomyApi.Models.Entities;
 using AutonomyApi.Repositories;
 using AutonomyApi.WebService.DynamicFilters;
@@ -14,20 +14,19 @@ namespace AutonomyApi.Services
             _dbContext = dbContext;
         }
 
-        public List<Currency> Get(string? search)
+        public IEnumerable<Currency> Get(string? search)
         {
             var filters = new DynamicFilterPipeline<Currency>
             {
                 new SubstringFilter<Currency>(search, currency => [ currency.Code, currency.Name ])
             };
 
-            return new CurrencyRepository(_dbContext).Search(filters.GetDelegate());
+            return new CurrencyRepository(_dbContext).Find(filters);
         }
 
         public Currency Get(int id)
         {
-            return new CurrencyRepository(_dbContext).FindFirst(q => q.Where(currency => currency.Id == id));
+            return new CurrencyRepository(_dbContext).Find(id, c => c);
         }
     }
 }
-*/

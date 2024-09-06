@@ -6,7 +6,7 @@ interface ActionButtonProps {
 }
 
 const ActionButton = (props:ActionButtonProps) => (
-    <button onClick={props.onClick} className="hover:text-primary" style={{fontSize: 20}}>{<props.icon />}</button>
+    <button type="button" onClick={props.onClick} className="hover:text-primary" style={{fontSize: 20}}>{<props.icon />}</button>
 )
 
 export default ActionButton;

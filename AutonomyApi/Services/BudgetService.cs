@@ -37,7 +37,6 @@ namespace AutonomyApi.Services
                     item.Name,
                     item.Quantity,
                     item.UnitPrice,
-                    item.Currency,
                     item.Duration,
                     item.DurationTimeUnit,
                     Total = item.GetTotal()
@@ -53,6 +52,7 @@ namespace AutonomyApi.Services
                 Name = data.Name,
                 UserId = userId,
                 Items = new List<BudgetItem>(),
+                CurrencyId = data.CurrencyId,
                 IsTemplate = false,
                 CreationDate = DateTime.UtcNow
             };
